@@ -1,6 +1,6 @@
 ---
 title: Stores
-description: LangGraph stores provide cross-thread long-term memory, complementing per-thread checkpointer persistence.
+description: LangGraph store 提供跨 thread 的 long-term memory, 与按 thread 划分的 checkpointer persistence 互补。
 ---
 
 import StoreListNamespaceSearchPy from '/snippets/code-samples/store-list-namespace-search-py.mdx';
@@ -10,26 +10,26 @@ import StoreListNamespacePaginateJs from '/snippets/code-samples/store-list-name
 import StoreListNamespaceListPy from '/snippets/code-samples/store-list-namespace-list-py.mdx';
 import StoreListNamespaceListJs from '/snippets/code-samples/store-list-namespace-list-js.mdx';
 
-Stores let agents persist information across threads, including user preferences, accumulated knowledge, and facts that should survive beyond a single conversation. Unlike [checkpointers](/oss/langgraph/checkpointers), which save the full graph state scoped to one thread, stores hold arbitrary key-value data accessible from any thread.
+store 让 agent 能够跨 thread 持久化信息, 包括用户偏好、积累的知识, 以及应当超越单次对话而留存下来的事实。与 [checkpointer](/oss/langgraph/checkpointers) 不同, checkpointer 保存的是作用域限定在单个 thread 的完整 graph state, 而 store 保存的是可从任意 thread 访问的任意键值数据。
 
 ![Model of shared state](/oss/images/shared_state.png)
 
 <Info>
-**Agent Server handles stores automatically**
-When using the [Agent Server](/langsmith/agent-server), you do not need to implement or configure stores manually. The API handles all storage infrastructure for you behind the scenes.
+**Agent Server 会自动处理 store**
+使用 [Agent Server](/langsmith/agent-server) 时, 你无需手动实现或配置 store。API 会在幕后为你处理所有存储基础设施。
 </Info>
 
 <Note>
-@[InMemoryStore] is suitable for development and testing. For production, use a persistent store like `PostgresStore`, `MongoDBStore`, `RedisStore`, or `UpstashStore`. All implementations extend @[BaseStore], which is the type annotation to use in node function signatures.
+@[InMemoryStore] 适合开发与测试。在生产环境, 请使用持久化的 store, 例如 `PostgresStore`、`MongoDBStore`、`RedisStore` 或 `UpstashStore`。所有实现都继承自 @[BaseStore], 它就是在 node 函数签名中使用的类型注解。
 </Note>
 
 <Note>
-See [store integrations](/oss/integrations/long-term-memory/index) for the full list of available providers.
+可用 provider 的完整列表见 [store 集成](/oss/integrations/long-term-memory/index)。
 </Note>
 
-## Basic usage
+## 基本用法
 
-The following code snippet shows the @[InMemoryStore] in isolation without using LangGraph:
+下面的代码片段单独展示了 @[InMemoryStore], 没有使用 LangGraph:
 
 :::python
 ```python
@@ -46,7 +46,7 @@ const memoryStore = new MemoryStore();
 ```
 :::
 
-Memories are namespaced by a `tuple`, which is `(<user_id>, "memories")` in the following example. The namespace can be any length and represent anything, does not have to be user specific.
+memory 按 `tuple` 划分 namespace, 在下面的示例中是 `(<user_id>, "memories")`。namespace 可以是任意长度, 表示任意内容, 不必是用户特定的。
 
 :::python
 ```python
@@ -62,7 +62,7 @@ const namespaceForMemory = [userId, "memories"];
 ```
 :::
 
-Use the `store.put` method to save memories to the namespace in the store. Specify the namespace, as defined above, and a key-value pair for the memory: the key is simply a unique identifier for the memory (`memory_id`) and the value (a dictionary) is the memory itself.
+使用 `store.put` 方法把 memory 保存到 store 中的 namespace。指定上面定义的 namespace, 以及 memory 的键值对: key 只是 memory 的一个唯一标识符 (`memory_id`), 而 value (一个字典) 就是 memory 本身。
 
 :::python
 ```python
@@ -80,7 +80,7 @@ await memoryStore.put(namespaceForMemory, memoryId, memory);
 ```
 :::
 
-Read out memories from your namespace using the `store.search` method, which returns memories for a given user as a list, up to the `limit` argument (default `10`). With `InMemoryStore`, items are returned in insertion order, so the most recent memory is last in the list; other backends may order memories differently (see [Listing items in a namespace](#listing-items-in-a-namespace)).
+使用 `store.search` 方法从你的 namespace 中读出 memory, 它把给定用户的 memory 以列表形式返回, 最多为 `limit` 参数个 (默认 `10`)。使用 `InMemoryStore` 时, 条目按插入顺序返回, 因此最近的 memory 位于列表末尾; 其他 backend 可能以不同方式对 memory 排序 (见 [列出 namespace 中的条目](#listing-items-in-a-namespace))。
 
 :::python
 ```python
@@ -93,20 +93,20 @@ memories[-1].dict()
  'updated_at': '2024-10-02T17:22:31.590605+00:00'}
 ```
 
-Each memory type is a Python class ([`Item`](https://langchain-ai.github.io/langgraph/reference/store/#langgraph.store.base.Item)) with certain attributes. We can access it as a dictionary by converting with `.dict`.
+每种 memory 类型都是一个 Python class ([`Item`](https://langchain-ai.github.io/langgraph/reference/store/#langgraph.store.base.Item)), 带有一些属性。我们可以用 `.dict` 把它转换成字典来访问。
 
-The attributes it has are:
+它具有的属性如下:
 
-* `value`: The value (itself a dictionary) of this memory
-* `key`: A unique key for this memory in this namespace
-* `namespace`: A tuple of strings, the namespace of this memory type
+* `value`: 该 memory 的 value (本身就是一个字典)
+* `key`: 该 memory 在此 namespace 中的唯一 key
+* `namespace`: 一个字符串 tuple, 即该 memory 类型的 namespace
 
     <Note>
-    While the type is `tuple[str, ...]`, it may be serialized as a list when converted to JSON (for example, `['1', 'memories']`).
+    虽然类型是 `tuple[str, ...]`, 但当它转换为 JSON 时可能会被序列化为列表 (例如 `['1', 'memories']`)。
     </Note>
 
-* `created_at`: Timestamp for when this memory was created
-* `updated_at`: Timestamp for when this memory was updated
+* `created_at`: 该 memory 创建时的时间戳
+* `updated_at`: 该 memory 更新时的时间戳
 
 :::
 
@@ -124,29 +124,29 @@ memories[memories.length - 1];
 // }
 ```
 
-The attributes it has are:
+它具有的属性如下:
 
-* `value`: The value of this memory
-* `key`: A unique key for this memory in this namespace
-* `namespace`: A tuple of strings, the namespace of this memory type
+* `value`: 该 memory 的 value
+* `key`: 该 memory 在此 namespace 中的唯一 key
+* `namespace`: 一个字符串 tuple, 即该 memory 类型的 namespace
 
     <Note>
-    While the type is `tuple`, it may be serialized as a list when converted to JSON (for example, `['1', 'memories']`).
+    虽然类型是 `tuple`, 但当它转换为 JSON 时可能会被序列化为列表 (例如 `['1', 'memories']`)。
     </Note>
 
-* `createdAt`: Timestamp for when this memory was created
-* `updatedAt`: Timestamp for when this memory was updated
+* `createdAt`: 该 memory 创建时的时间戳
+* `updatedAt`: 该 memory 更新时的时间戳
 
 :::
 
-## Listing items in a namespace
+## 列出 namespace 中的条目
 
 :::python
-Calling [`store.search`](https://reference.langchain.com/python/langgraph/store/#langgraph.store.base.BaseStore.search) (or the async [`store.asearch`](https://reference.langchain.com/python/langgraph/store/#langgraph.store.base.BaseStore.asearch)) with no `query` and no `filter` returns the items stored under `namespace_prefix`, up to `limit`. Use this to enumerate everything in a namespace when you don't need semantic ranking.
+调用 [`store.search`](https://reference.langchain.com/python/langgraph/store/#langgraph.store.base.BaseStore.search) (或 async 的 [`store.asearch`](https://reference.langchain.com/python/langgraph/store/#langgraph.store.base.BaseStore.asearch)), 且不传 `query` 也不传 `filter`, 会返回存储在 `namespace_prefix` 下的条目, 最多为 `limit` 个。当你不需要 semantic ranking 时, 可以用它来枚举某个 namespace 中的所有内容。
 :::
 
 :::js
-Calling `store.search` with no `query` and no `filter` returns the items stored under the namespace prefix, up to `limit`. Use this to enumerate everything in a namespace when you don't need semantic ranking.
+调用 `store.search`, 且不传 `query` 也不传 `filter`, 会返回存储在 namespace 前缀下的条目, 最多为 `limit` 个。当你不需要 semantic ranking 时, 可以用它来枚举某个 namespace 中的所有内容。
 :::
 
 :::python
@@ -161,43 +161,43 @@ Calling `store.search` with no `query` and no `filter` returns the items stored 
 
 :::
 
-Three behaviors to keep in mind:
+有三点行为需要留意:
 
-- **`namespace_prefix` matches by prefix, not exactly.** `("alice",)` also returns items under `("alice", "memories")`, `("alice", "preferences")`, and so on. To restrict to a single level, pass the full namespace or filter the returned items client-side on `item.namespace`.
-- **Results past `limit` are silently truncated.** There is no overflow signal—set `limit` above your expected maximum, or paginate with `offset`.
-- **Default ordering depends on the store backend.** `PostgresStore` and `AsyncPostgresStore` return results ordered by `updated_at` descending (most recently updated first). `InMemoryStore` returns results in insertion order (most recently inserted last). Do not rely on a specific order across implementations; sort client-side on `item.updated_at` if order matters.
+- **`namespace_prefix` 按前缀匹配, 而非精确匹配。** `("alice",)` 也会返回 `("alice", "memories")`、`("alice", "preferences")` 等下面的条目。要限定到单一层级, 请传入完整 namespace, 或在客户端按 `item.namespace` 过滤返回的条目。
+- **超过 `limit` 的结果会被静默截断。** 不会给出溢出信号 — 请把 `limit` 设为大于你预期最大值的数, 或用 `offset` 分页。
+- **默认排序取决于 store backend。** `PostgresStore` 与 `AsyncPostgresStore` 返回的结果按 `updated_at` 降序排列 (最近更新的在前)。`InMemoryStore` 按插入顺序返回结果 (最近插入的在后)。不要依赖跨实现一致的特定顺序; 如果顺序重要, 请在客户端按 `item.updated_at` 排序。
 
 :::python
-To page through a large namespace:
+要分页遍历一个很大的 namespace:
 
 <StoreListNamespacePaginatePy />
 
 :::
 
 :::js
-To page through a large namespace:
+要分页遍历一个很大的 namespace:
 
 <StoreListNamespacePaginateJs />
 
 :::
 
 :::python
-To discover which namespaces exist (for example, to iterate over every user before listing their memories), use [`store.list_namespaces`](https://reference.langchain.com/python/langgraph/store/#langgraph.store.base.BaseStore.list_namespaces) or [`store.alist_namespaces`](https://reference.langchain.com/python/langgraph/store/#langgraph.store.base.BaseStore.alist_namespaces):
+要发现存在哪些 namespace (例如, 在列出每个用户的 memory 之前先遍历所有用户), 请使用 [`store.list_namespaces`](https://reference.langchain.com/python/langgraph/store/#langgraph.store.base.BaseStore.list_namespaces) 或 [`store.alist_namespaces`](https://reference.langchain.com/python/langgraph/store/#langgraph.store.base.BaseStore.alist_namespaces):
 
 <StoreListNamespaceListPy />
 
 :::
 
 :::js
-To discover which namespaces exist (for example, to iterate over every user before listing their memories), use `store.listNamespaces`:
+要发现存在哪些 namespace (例如, 在列出每个用户的 memory 之前先遍历所有用户), 请使用 `store.listNamespaces`:
 
 <StoreListNamespaceListJs />
 
 :::
 
-## Semantic search
+## 语义搜索
 
-Beyond simple retrieval, the store also supports semantic search, allowing you to find memories based on meaning rather than exact matches. To enable this, configure the store with an embedding model:
+除了简单的检索之外, store 还支持语义搜索, 让你可以基于含义而非精确匹配来查找 memory。要启用它, 请为 store 配置一个 embedding model:
 
 :::python
 ```python
@@ -227,7 +227,7 @@ const store = new InMemoryStore({
 ```
 :::
 
-Now when searching, you can use natural language queries to find relevant memories:
+现在搜索时, 你可以用自然语言 query 来查找相关的 memory:
 
 :::python
 ```python
@@ -252,7 +252,7 @@ const memories = await store.search(namespaceForMemory, {
 ```
 :::
 
-You can control which parts of your memories get embedded by configuring the `fields` parameter or by specifying the `index` parameter when storing memories:
+你可以通过配置 `fields` 参数, 或在存储 memory 时指定 `index` 参数, 来控制 memory 的哪些部分会被嵌入:
 
 :::python
 ```python
@@ -300,10 +300,10 @@ await store.put(
 ```
 :::
 
-## Using in LangGraph
+## 在 LangGraph 中使用
 
 :::python
-The store works hand-in-hand with the checkpointer: the checkpointer saves state to threads, as discussed above, and the store allows you to store arbitrary information for access _across_ threads. Compile the graph with both the checkpointer and the store as follows.
+store 与 checkpointer 协同工作: 如前所述, checkpointer 把 state 保存到 thread, 而 store 让你存储任意信息以便 _跨_ thread 访问。请按下面的方式用 checkpointer 和 store 一起编译 graph。
 
 ```python
 from dataclasses import dataclass
@@ -326,7 +326,7 @@ graph = builder.compile(checkpointer=checkpointer, store=store)
 :::
 
 :::js
-The `memoryStore` works hand-in-hand with the checkpointer: the checkpointer saves state to threads, as discussed above, and the `memoryStore` allows you to store arbitrary information for access _across_ threads. Compile the graph with both the checkpointer and the `memoryStore` as follows.
+`memoryStore` 与 checkpointer 协同工作: 如前所述, checkpointer 把 state 保存到 thread, 而 `memoryStore` 让你存储任意信息以便 _跨_ thread 访问。请按下面的方式用 checkpointer 和 `memoryStore` 一起编译 graph。
 
 ```typescript
 import { MemorySaver } from "@langchain/langgraph";
@@ -341,7 +341,7 @@ const graph = workflow.compile({ checkpointer, store: memoryStore });
 ```
 :::
 
-Then invoke the graph with a `thread_id`, as before, and also with a `user_id`, which serves as the namespace for memories for this particular user as before.
+然后, 像之前一样用 `thread_id` 调用 graph, 同时也像之前一样传入 `user_id`, 它充当该特定用户的 memory 的 namespace。
 
 :::python
 ```python
@@ -376,7 +376,7 @@ for await (const update of await graph.stream(
 :::
 
 :::python
-You can access the store and the `user_id` from _any node_ by using the `Runtime` object. The `Runtime` is automatically injected by LangGraph when you add it as a parameter to your node function. You can use it to save memories:
+通过 `Runtime` 对象, 你可以从 _任意 node_ 访问 store 和 `user_id`。当你把 `Runtime` 作为参数添加到 node 函数时, LangGraph 会自动注入它。你可以用它来保存 memory:
 
 ```python
 from langgraph.runtime import Runtime
@@ -408,7 +408,7 @@ async def update_memory(state: MessagesState, runtime: Runtime[Context]):
 :::
 
 :::js
-You can access the store and the `userId` from _any node_ with the `runtime` argument. You can use it to save memories:
+通过 `runtime` 参数, 你可以从 _任意 node_ 访问 store 和 `userId`。你可以用它来保存 memory:
 
 ```typescript
 import { StateSchema, MessagesValue, Runtime } from "@langchain/langgraph";
@@ -437,7 +437,7 @@ const updateMemory: GraphNode<typeof MessagesState> = async (state, runtime) => 
 ```
 :::
 
-You can also access the store from any node and use the `store.search` method to get memories. Memories are returned as a list of objects that can be converted to a dictionary.
+你也可以从任意 node 访问 store, 并用 `store.search` 方法获取 memory。memory 以对象列表的形式返回, 这些对象可以转换成字典。
 
 :::python
 ```python
@@ -463,7 +463,7 @@ memories[memories.length - 1];
 ```
 :::
 
-You access the memories and use them in model calls.
+你访问这些 memory, 并在 model 调用中使用它们。
 
 :::python
 ```python
@@ -514,7 +514,7 @@ const callModel: GraphNode<typeof MessagesState> = async (state, runtime) => {
 ```
 :::
 
-If you create a new thread, you can still access the same memories so long as the `user_id` is the same.
+如果你创建一个新的 thread, 只要 `user_id` 相同, 你仍然可以访问相同的 memory。
 
 :::python
 ```python
@@ -547,7 +547,7 @@ for await (const update of await graph.stream(
 ```
 :::
 
-When you use LangSmith locally (e.g., in [Studio](/langsmith/studio)) or [hosted](/langsmith/platform-setup), the base store is available to use by default and you do not need to specify it during graph compilation. To enable semantic search, however, you **do** need to configure the indexing settings in your `langgraph.json` file. For example:
+当你在本地 (例如在 [Studio](/langsmith/studio) 中) 或[托管环境](/langsmith/platform-setup)中使用 LangSmith 时, base store 默认就可用, 你无需在编译 graph 时指定它。不过要启用语义搜索, 你**确实**需要在 `langgraph.json` 文件中配置索引设置。例如:
 
 ```json
 {
@@ -562,27 +562,27 @@ When you use LangSmith locally (e.g., in [Studio](/langsmith/studio)) or [hosted
 }
 ```
 
-See the [deployment guide](/langsmith/semantic-search) for more details and configuration options.
+更多细节与配置选项见[部署指南](/langsmith/semantic-search)。
 
 :::python
-## Build a custom store
+## 构建自定义 store
 
 
-To use a storage backend other than the built-in implementations, subclass @[BaseStore] and implement its required methods. The built-in @[InMemoryStore] is the simplest reference implementation.
+要使用内置实现之外的存储 backend, 请继承 @[BaseStore] 并实现其必需的方法。内置的 @[InMemoryStore] 是最简单的参考实现。
 
-### Base contract
+### 基础契约
 
-All five async methods are required. Sync counterparts (`put`, `get`, `delete`, `search`, `list_namespaces`) are optional but recommended for compatibility with sync graph execution.
+五个 async 方法都是必需的。对应的同步方法 (`put`、`get`、`delete`、`search`、`list_namespaces`) 是可选的, 但为了兼容同步的 graph 执行, 建议实现它们。
 
-| Method | Description |
+| 方法 | 说明 |
 |--------|-------------|
-| `aput(namespace, key, value, index=None)` | Store or overwrite a single item |
-| `aget(namespace, key)` | Retrieve a single item by key; return `None` if missing |
-| `adelete(namespace, key)` | Delete a single item |
-| `asearch(namespace_prefix, *, query=None, filter=None, limit=10, offset=0)` | Search items under a namespace prefix; optionally by semantic query |
-| `alist_namespaces(*, prefix=None, suffix=None, max_depth=None, limit=100, offset=0)` | List namespaces matching a prefix/suffix pattern |
+| `aput(namespace, key, value, index=None)` | 存储或覆盖单个条目 |
+| `aget(namespace, key)` | 按键检索单个条目; 若不存在则返回 `None` |
+| `adelete(namespace, key)` | 删除单个条目 |
+| `asearch(namespace_prefix, *, query=None, filter=None, limit=10, offset=0)` | 在某个 namespace 前缀下搜索条目; 可选地按语义 query 搜索 |
+| `alist_namespaces(*, prefix=None, suffix=None, max_depth=None, limit=100, offset=0)` | 列出匹配某前缀/后缀模式的 namespace |
 
-Look up exact signatures before implementing:
+实现前请先查阅准确的签名:
 
 ```python
 import inspect
@@ -590,14 +590,14 @@ from langgraph.store.base import BaseStore
 print(inspect.getsource(BaseStore))
 ```
 
-### Namespace design
+### namespace 设计
 
-Namespaces are tuples of strings, e.g. `("user_id", "memories")`. Store implementations must support:
+namespace 是字符串 tuple, 例如 `("user_id", "memories")`。store 实现必须支持:
 
-- **Prefix matching**: `asearch(("alice",))` returns items under `("alice",)`, `("alice", "memories")`, and any other sub-namespace.
-- **Exact key lookup**: `aget(("alice", "memories"), "some-key")` must be O(1) or close to it.
+- **前缀匹配**: `asearch(("alice",))` 会返回 `("alice",)`、`("alice", "memories")` 以及任何其他子 namespace 下的条目。
+- **精确 key 查找**: `aget(("alice", "memories"), "some-key")` 必须是 O(1) 或接近 O(1)。
 
-For SQL backends, a common schema:
+对于 SQL backend, 一种常见 schema:
 
 ```sql
 CREATE TABLE store_items (
@@ -612,23 +612,23 @@ CREATE TABLE store_items (
 CREATE INDEX ON store_items USING gin(namespace);
 ```
 
-### Serialization
+### 序列化
 
-Store values are plain Python dicts — no special serializer is required. Serialize with `json.dumps` / `json.loads` or a JSONB column directly. Do not store raw Python objects that are not JSON-serializable.
+store 的 value 是普通的 Python dict — 不需要特殊的序列化器。用 `json.dumps` / `json.loads` 序列化, 或直接使用 JSONB 列。不要存储无法 JSON 序列化的原始 Python 对象。
 
-### Semantic search support
+### 语义搜索支持
 
-If your backend supports vector search, implement the `query` parameter on `asearch`:
+如果你的 backend 支持向量搜索, 请在 `asearch` 上实现 `query` 参数:
 
-- Accept a `query: str | None` argument.
-- When `query` is not `None`, embed it and rank results by cosine similarity.
-- Results should include a `score` field on each `Item` when `query` is provided.
+- 接受一个 `query: str | None` 参数。
+- 当 `query` 不为 `None` 时, 对它进行嵌入, 并按余弦相似度对结果排序。
+- 当提供了 `query` 时, 每个 `Item` 上都应包含一个 `score` 字段。
 
-If your backend does not support vector search, raise `NotImplementedError` when `query` is passed.
+如果你的 backend 不支持向量搜索, 请在传入 `query` 时抛出 `NotImplementedError`。
 
-### Testing
+### 测试
 
-There is currently no conformance suite for custom stores. Test against @[InMemoryStore] as the reference:
+目前还没有针对自定义 store 的一致性测试套件。请以 @[InMemoryStore] 为参考进行测试:
 
 ```python
 import pytest
@@ -667,7 +667,9 @@ async def test_search_prefix(store, reference):
 ```
 :::
 
-### Next steps
+### 后续步骤
 
-- [Add a custom store to Agent Server](/langsmith/custom-store) — deploying your implementation
-- [Checkpointers](/oss/langgraph/checkpointers) — thread-scoped state persistence
+- [向 Agent Server 添加自定义 store](/langsmith/custom-store) — 部署你的实现
+- [Checkpointers](/oss/langgraph/checkpointers) — thread 作用域的 state persistence
+
+{/* 源文档版本: src/oss/langgraph/stores.mdx @ 39db2759e (2026-09-07) | 翻译日期: 2026-10-01 */}

@@ -1,39 +1,39 @@
 ---
 title: Checkpointers
-description: LangGraph checkpointers save graph state as checkpoints at each step, enabling persistence, human-in-the-loop, and fault-tolerant execution.
+description: LangGraph checkpointer 会在每一步把 graph state 保存为 checkpoint, 从而支持 persistence、human-in-the-loop 与容错执行。
 ---
 
-A checkpointer saves a snapshot of graph state at each super-step, organized into **threads**. Compile a graph with a checkpointer to enable human-in-the-loop workflows, time travel debugging, fault-tolerant execution, and conversational memory.
+checkpointer 会在每个 super-step 保存一份 graph state 的 snapshot, 并按 **thread** 组织。用 checkpointer 编译 graph, 即可启用 human-in-the-loop workflow、time travel 调试、容错执行以及对话 memory。
 
 ![Checkpoints](/oss/images/checkpoints.jpg)
 
 <Info>
-**Agent Server handles checkpointing automatically**
-When using the [Agent Server](/langsmith/agent-server), you do not need to implement or configure checkpointers manually. The server handles all persistence infrastructure for you behind the scenes.
+**Agent Server 会自动处理 checkpointing**
+使用 [Agent Server](/langsmith/agent-server) 时, 你无需手动实现或配置 checkpointer。服务端会在幕后为你处理所有 persistence 基础设施。
 </Info>
 
 <Tip>
-Trace checkpointed state and debug how your agent resumes across sessions with [LangSmith](https://smith.langchain.com). Follow the [tracing quickstart](/langsmith/trace-with-langgraph) to get set up.
+用 [LangSmith](https://smith.langchain.com) 追踪已 checkpoint 的 state, 并调试你的 agent 如何跨会话恢复。按照[追踪快速入门](/langsmith/trace-with-langgraph)完成设置。
 </Tip>
 
-## Why use checkpointers
+## 为什么要用 checkpointer
 
-Checkpointers are required for the following features:
+以下功能需要 checkpointer:
 
-- **Human-in-the-loop**: Checkpointers facilitate [human-in-the-loop workflows](/oss/langgraph/interrupts) by allowing humans to inspect, interrupt, and approve graph steps. Checkpointers are needed for these workflows as the person has to be able to view the state of a graph at any point in time, and the graph has to be able to resume execution after the person has made any updates to the state. See [Interrupts](/oss/langgraph/interrupts) for examples.
-- **Memory**: Checkpointers allow for ["memory"](/oss/concepts/memory) between interactions. In the case of repeated human interactions (like conversations) any follow up messages can be sent to that thread, which will retain its memory of previous ones. See [Add memory](/oss/langgraph/add-memory) for information on how to add and manage conversation memory using checkpointers.
-- **Time travel**: Checkpointers allow for ["time travel"](/oss/langgraph/use-time-travel), allowing users to replay prior graph executions to review and / or debug specific graph steps. In addition, checkpointers make it possible to fork the graph state at arbitrary checkpoints to explore alternative trajectories.
-- **Fault-tolerance**: Checkpointing provides fault-tolerance and error recovery: if one or more nodes fail at a given superstep, you can restart your graph from the last successful step.
+- **Human-in-the-loop**: checkpointer 让人们能够检查、interrupt 并批准 graph 步骤, 从而支撑 [human-in-the-loop workflow](/oss/langgraph/interrupts)。这类 workflow 需要 checkpointer, 因为人必须能在任意时刻查看 graph 的 state, 并且在人对 state 做出更新后 graph 必须能恢复执行。示例见 [Interrupts](/oss/langgraph/interrupts)。
+- **Memory**: checkpointer 让不同交互之间可以保留 ["memory"](/oss/concepts/memory)。在反复的人机交互 (如对话) 中, 任何后续消息都可以发送到该 thread, 它会保留对先前消息的 memory。关于如何用 checkpointer 添加和管理对话 memory, 见 [Add memory](/oss/langgraph/add-memory)。
+- **Time travel**: checkpointer 支持 ["time travel"](/oss/langgraph/use-time-travel), 让用户可以重放先前的 graph 执行, 以审查和 / 或调试特定的 graph 步骤。此外, checkpointer 还能在任意 checkpoint 处对 graph state 进行分叉, 以探索不同的轨迹。
+- **Fault-tolerance**: checkpointing 提供容错与错误恢复: 如果一个或多个 node 在某个 superstep 失败, 你可以从上一个成功的步骤重启 graph。
 <a id="pending-writes"></a>
-- **Pending writes**: When a graph node fails mid-execution at a given [super-step](#super-steps), LangGraph stores pending checkpoint writes from any other nodes that completed successfully at that super-step. When you resume graph execution from that super-step you don't re-run the successful nodes.
+- **Pending writes**: 当某个 graph node 在给定的 [super-step](#super-steps) 执行到一半时失败, LangGraph 会存储该 super-step 中其他已成功完成的 node 所产生的 pending checkpoint writes。当你从该 super-step 恢复 graph 执行时, 不会重新运行那些成功的 node。
 
-## Core concepts
+## 核心概念
 
 ### Threads
 
-A thread is a unique ID or thread identifier assigned to each checkpoint saved by a checkpointer. It contains the accumulated state of a sequence of [runs](/langsmith/runs). When a run is executed, the [state](/oss/langgraph/graph-api#state) of the underlying graph of the assistant will be persisted to the thread.
+thread 是分配给 checkpointer 保存的每个 checkpoint 的唯一 ID, 即 thread identifier。它包含一串 [run](/langsmith/runs) 累积起来的 state。当某个 run 执行时, assistant 底层 graph 的 [state](/oss/langgraph/graph-api#state) 会被持久化到该 thread。
 
-When invoking a graph with a checkpointer, you **must** specify a `thread_id` as part of the `configurable` portion of the config:
+用 checkpointer 调用 graph 时, 你**必须**在 config 的 `configurable` 部分指定 `thread_id`:
 
 :::python
 ```python
@@ -51,25 +51,25 @@ When invoking a graph with a checkpointer, you **must** specify a `thread_id` as
 ```
 :::
 
-A thread's current and historical state can be retrieved. To persist state, a thread must be created prior to executing a run. The LangSmith API provides several endpoints for creating and managing threads and thread state. See the [API reference](https://reference.langchain.com/python/langsmith/) for more details.
+thread 的当前 state 与历史 state 都可以读取。要持久化 state, 必须在执行 run 之前先创建 thread。LangSmith API 提供了多个 endpoint, 用于创建和管理 thread 及 thread state。更多细节见 [API 参考](https://reference.langchain.com/python/langsmith/)。
 
-The checkpointer uses `thread_id` as the primary key for storing and retrieving checkpoints. Without it, the checkpointer cannot save state or resume execution after an [interrupt](/oss/langgraph/interrupts), since the checkpointer uses `thread_id` to load the saved state.
+checkpointer 用 `thread_id` 作为存储与检索 checkpoint 的主键。没有它, checkpointer 就无法保存 state, 也无法在 [interrupt](/oss/langgraph/interrupts) 之后恢复执行, 因为 checkpointer 需要靠 `thread_id` 来加载已保存的 state。
 
 ### Checkpoints
 
-The state of a thread at a particular point in time is called a checkpoint. A checkpoint is a snapshot of the graph state saved at each [super-step](#super-steps) and is represented by a `StateSnapshot` object (see [StateSnapshot fields](#statesnapshot-fields) for the full field reference).
+thread 在某个特定时间点的 state 称为 checkpoint。checkpoint 是在每个 [super-step](#super-steps) 保存的 graph state snapshot, 由 `StateSnapshot` 对象表示 (完整字段参考见 [StateSnapshot 字段](#statesnapshot-fields))。
 
 #### Super-steps
 
-LangGraph creates a checkpoint at each **super-step** boundary. A super-step is a single "tick" of the graph where all nodes scheduled for that step execute (potentially in parallel). For a sequential graph like `START -> A -> B -> END`, there are separate super-steps for the input, node A, and node B — producing a checkpoint after each one. Understanding super-step boundaries is important for [time travel](/oss/langgraph/use-time-travel), because you can only resume execution from a checkpoint (i.e., a super-step boundary).
+LangGraph 会在每个 **super-step** 边界创建一个 checkpoint。super-step 是 graph 的一次 "tick", 在该步中所有被调度的 node 都会执行 (可能并行)。对于像 `START -> A -> B -> END` 这样的顺序 graph, 输入、node A 和 node B 各自有独立的 super-step — 每完成一个就会产生一个 checkpoint。理解 super-step 边界对 [time travel](/oss/langgraph/use-time-travel) 很重要, 因为你只能从 checkpoint, 也就是 super-step 边界处恢复执行。
 
-In addition to super-step checkpoints, LangGraph also persists writes at the **node (task) level**. As each node within a super-step finishes, its outputs are written to the checkpointer's `checkpoint_writes` table as task entries linked to the in-progress checkpoint. These per-task writes are what enable [pending writes](#pending-writes) recovery: if another node in the same super-step fails, the successful nodes' writes are already durable and don't need to be re-run on resume. The full state snapshot is then committed once the super-step completes.
+除了 super-step checkpoint 之外, LangGraph 还会在 **node (task) 级别**持久化写入。当 super-step 内的每个 node 完成时, 它的输出会以 task 条目的形式写入 checkpointer 的 `checkpoint_writes` 表, 并与进行中的 checkpoint 关联。正是这些 per-task writes 支撑了 [pending writes](#pending-writes) 恢复: 如果同一 super-step 中的另一个 node 失败, 成功 node 的写入已经持久化, 恢复时无需重新运行。super-step 完成后, 完整的 state snapshot 才会被提交。
 
-LangGraph also persists writes from individual node executions within a super-step. These writes are stored as tasks and used for fault tolerance: if another node in the same super-step fails, successful node writes do not need to be recomputed when you resume. These task writes are not full `StateSnapshot` checkpoints, so time travel resumes from full checkpoints at super-step boundaries.
+LangGraph 还会持久化 super-step 内各个 node 执行的写入。这些写入以 task 的形式存储, 用于容错: 如果同一 super-step 中的另一个 node 失败, 恢复时无需重新计算成功 node 的写入。这些 task writes 不是完整的 `StateSnapshot` checkpoint, 因此 time travel 会从 super-step 边界处的完整 checkpoint 恢复。
 
-Checkpoints are persisted and can be used to restore the state of a thread at a later time.
+checkpoint 会被持久化, 可在之后用于恢复 thread 的 state。
 
-Let's see what checkpoints are saved when a simple graph is invoked as follows:
+让我们看看按下面方式调用一个简单 graph 时会保存哪些 checkpoint:
 
 :::python
 ```python
@@ -142,35 +142,35 @@ await graph.invoke({ foo: "", bar: [] }, config);
 :::
 
 :::python
-After you run the graph, there will be exactly 4 checkpoints:
+运行 graph 后, 将正好有 4 个 checkpoint:
 
-* Empty checkpoint with @[`START`] as the next node to be executed
-* Checkpoint with the user input `{'foo': '', 'bar': []}` and `node_a` as the next node to be executed
-* Checkpoint with the outputs of `node_a` `{'foo': 'a', 'bar': ['a']}` and `node_b` as the next node to be executed
-* Checkpoint with the outputs of `node_b` `{'foo': 'b', 'bar': ['a', 'b']}` and no next nodes to be executed
+* 空 checkpoint, 下一个要执行的 node 是 @[`START`]
+* 包含用户输入 `{'foo': '', 'bar': []}` 的 checkpoint, 下一个要执行的 node 是 `node_a`
+* 包含 `node_a` 输出 `{'foo': 'a', 'bar': ['a']}` 的 checkpoint, 下一个要执行的 node 是 `node_b`
+* 包含 `node_b` 输出 `{'foo': 'b', 'bar': ['a', 'b']}` 的 checkpoint, 没有下一个要执行的 node
 
-Note that the `bar` channel values contain outputs from both nodes because this example has a reducer for the `bar` channel.
+注意 `bar` 通道的值包含两个 node 的输出, 因为这个示例为 `bar` 通道设置了 reducer。
 :::
 
 :::js
-After you run the graph, there will be exactly 4 checkpoints:
+运行 graph 后, 将正好有 4 个 checkpoint:
 
-* Empty checkpoint with @[`START`] as the next node to be executed
-* Checkpoint with the user input `{'foo': '', 'bar': []}` and `nodeA` as the next node to be executed
-* Checkpoint with the outputs of `nodeA` `{'foo': 'a', 'bar': ['a']}` and `nodeB` as the next node to be executed
-* Checkpoint with the outputs of `nodeB` `{'foo': 'b', 'bar': ['a', 'b']}` and no next nodes to be executed
+* 空 checkpoint, 下一个要执行的 node 是 @[`START`]
+* 包含用户输入 `{'foo': '', 'bar': []}` 的 checkpoint, 下一个要执行的 node 是 `nodeA`
+* 包含 `nodeA` 输出 `{'foo': 'a', 'bar': ['a']}` 的 checkpoint, 下一个要执行的 node 是 `nodeB`
+* 包含 `nodeB` 输出 `{'foo': 'b', 'bar': ['a', 'b']}` 的 checkpoint, 没有下一个要执行的 node
 
-Note that the `bar` channel values contain outputs from both nodes because this example has a reducer for the `bar` channel.
+注意 `bar` 通道的值包含两个 node 的输出, 因为这个示例为 `bar` 通道设置了 reducer。
 :::
 
 #### Checkpoint namespace
 
-Each checkpoint has a `checkpoint_ns` (checkpoint namespace) field that identifies which graph or subgraph it belongs to:
+每个 checkpoint 都有一个 `checkpoint_ns` (checkpoint namespace) 字段, 用于标识它属于哪个 graph 或 subgraph:
 
-- **`""`** (empty string): The checkpoint belongs to the parent (root) graph.
-- **`"node_name:uuid"`**: The checkpoint belongs to a subgraph invoked as the given node. For nested subgraphs, namespaces are joined with `|` separators (e.g., `"outer_node:uuid|inner_node:uuid"`).
+- **`""`** (空字符串): 该 checkpoint 属于父 (根) graph。
+- **`"node_name:uuid"`**: 该 checkpoint 属于作为给定 node 被调用的 subgraph。对于嵌套 subgraph, 各 namespace 用 `|` 分隔符连接 (例如 `"outer_node:uuid|inner_node:uuid"`)。
 
-You can access the checkpoint namespace from within a node via the config:
+你可以在 node 内部通过 config 访问 checkpoint namespace:
 
 :::python
 ```python
@@ -193,14 +193,14 @@ function myNode(state: typeof State.Type, config: RunnableConfig) {
 ```
 :::
 
-See [Subgraphs](/oss/langgraph/use-subgraphs) for more details on working with subgraph state and checkpoints.
+关于如何使用 subgraph state 与 checkpoint, 更多细节见 [Subgraphs](/oss/langgraph/use-subgraphs)。
 
-## Get and update state
+## 获取并更新 state
 
-### Get state
+### 获取 state
 
 :::python
-When interacting with the saved graph state, you **must** specify a [thread identifier](#threads). You can view the _latest_ state of the graph by calling `graph.get_state(config)`. This will return a `StateSnapshot` object that corresponds to the latest checkpoint associated with the thread ID provided in the config or a checkpoint associated with a checkpoint ID for the thread, if provided.
+与已保存的 graph state 交互时, 你**必须**指定 [thread identifier](#threads)。你可以通过调用 `graph.get_state(config)` 查看 graph 的_最新_ state。它会返回一个 `StateSnapshot` 对象, 对应 config 中提供的 thread ID 所关联的最新 checkpoint, 或者 (如果提供了的话) 与该 thread 的某个 checkpoint ID 关联的 checkpoint。
 
 ```python
 # get the latest state snapshot
@@ -214,7 +214,7 @@ graph.get_state(config)
 :::
 
 :::js
-When interacting with the saved graph state, you **must** specify a [thread identifier](#threads). You can view the _latest_ state of the graph by calling `graph.getState(config)`. This will return a `StateSnapshot` object that corresponds to the latest checkpoint associated with the thread ID provided in the config or a checkpoint associated with a checkpoint ID for the thread, if provided.
+与已保存的 graph state 交互时, 你**必须**指定 [thread identifier](#threads)。你可以通过调用 `graph.getState(config)` 查看 graph 的_最新_ state。它会返回一个 `StateSnapshot` 对象, 对应 config 中提供的 thread ID 所关联的最新 checkpoint, 或者 (如果提供了的话) 与该 thread 的某个 checkpoint ID 关联的 checkpoint。
 
 ```typescript
 // get the latest state snapshot
@@ -233,7 +233,7 @@ await graph.getState(config);
 :::
 
 :::python
-In this example, the output of `get_state` will look like this:
+在这个示例中, `get_state` 的输出如下所示:
 
 ```
 StateSnapshot(
@@ -249,7 +249,7 @@ StateSnapshot(
 :::
 
 :::js
-In this example, the output of `getState` will look like this:
+在这个示例中, `getState` 的输出如下所示:
 
 ```
 StateSnapshot {
@@ -280,40 +280,40 @@ StateSnapshot {
 ```
 :::
 
-#### StateSnapshot fields
+#### StateSnapshot 字段
 
 :::python
 
-| Field | Type | Description |
+| 字段 | 类型 | 描述 |
 |-------|------|-------------|
-| `values` | `dict` | State channel values at this checkpoint. |
-| `next` | `tuple[str, ...]` | Node names to execute next. Empty `()` means the graph is complete. |
-| `config` | `dict` | Contains `thread_id`, `checkpoint_ns`, and `checkpoint_id`. |
-| `metadata` | `dict` | Execution metadata. Contains `source` (`"input"`, `"loop"`, or `"update"`), `writes` (node outputs), and `step` (super-step counter). |
-| `created_at` | `str` | ISO 8601 timestamp of when this checkpoint was created. |
-| `parent_config` | `dict \| None` | Config of the previous checkpoint. `None` for the first checkpoint. |
-| `tasks` | `tuple[PregelTask, ...]` | Tasks to execute at this step. Each task has `id`, `name`, `error`, `interrupts`, and optionally `state` (subgraph snapshot, when using `subgraphs=True`). |
+| `values` | `dict` | 该 checkpoint 处的 state 通道值。 |
+| `next` | `tuple[str, ...]` | 接下来要执行的 node 名称。空的 `()` 表示 graph 已完成。 |
+| `config` | `dict` | 包含 `thread_id`、`checkpoint_ns` 与 `checkpoint_id`。 |
+| `metadata` | `dict` | 执行元数据。包含 `source` (`"input"`、`"loop"` 或 `"update"`)、`writes` (node 输出) 与 `step` (super-step 计数器)。 |
+| `created_at` | `str` | 该 checkpoint 创建时间的 ISO 8601 时间戳。 |
+| `parent_config` | `dict \| None` | 上一个 checkpoint 的 config。第一个 checkpoint 为 `None`。 |
+| `tasks` | `tuple[PregelTask, ...]` | 该步要执行的 task。每个 task 都有 `id`、`name`、`error`、`interrupts`, 以及可选的 `state` (subgraph snapshot, 使用 `subgraphs=True` 时)。 |
 
 :::
 
 :::js
 
-| Field | Type | Description |
+| 字段 | 类型 | 描述 |
 |-------|------|-------------|
-| `values` | `object` | State channel values at this checkpoint. |
-| `next` | `string[]` | Node names to execute next. Empty `[]` means the graph is complete. |
-| `config` | `object` | Contains `thread_id`, `checkpoint_ns`, and `checkpoint_id`. |
-| `metadata` | `object` | Execution metadata. Contains `source` (`"input"`, `"loop"`, or `"update"`), `writes` (node outputs), and `step` (super-step counter). |
-| `createdAt` | `string` | ISO 8601 timestamp of when this checkpoint was created. |
-| `parentConfig` | `object \| null` | Config of the previous checkpoint. `null` for the first checkpoint. |
-| `tasks` | `PregelTask[]` | Tasks to execute at this step. Each task has `id`, `name`, `error`, `interrupts`, and optionally `state` (subgraph snapshot, when using `subgraphs: true`). |
+| `values` | `object` | 该 checkpoint 处的 state 通道值。 |
+| `next` | `string[]` | 接下来要执行的 node 名称。空的 `[]` 表示 graph 已完成。 |
+| `config` | `object` | 包含 `thread_id`、`checkpoint_ns` 与 `checkpoint_id`。 |
+| `metadata` | `object` | 执行元数据。包含 `source` (`"input"`、`"loop"` 或 `"update"`)、`writes` (node 输出) 与 `step` (super-step 计数器)。 |
+| `createdAt` | `string` | 该 checkpoint 创建时间的 ISO 8601 时间戳。 |
+| `parentConfig` | `object \| null` | 上一个 checkpoint 的 config。第一个 checkpoint 为 `null`。 |
+| `tasks` | `PregelTask[]` | 该步要执行的 task。每个 task 都有 `id`、`name`、`error`、`interrupts`, 以及可选的 `state` (subgraph snapshot, 使用 `subgraphs: true` 时)。 |
 
 :::
 
-### Get state history
+### 获取 state 历史
 
 :::python
-You can get the full history of the graph execution for a given thread by calling @[`graph.get_state_history(config)`][get_state_history]. This will return a list of `StateSnapshot` objects associated with the thread ID provided in the config. Importantly, the checkpoints will be ordered chronologically with the most recent checkpoint / `StateSnapshot` being the first in the list.
+你可以通过调用 @[`graph.get_state_history(config)`][get_state_history] 获取给定 thread 的完整 graph 执行历史。它会返回一个 `StateSnapshot` 对象列表, 这些对象与 config 中提供的 thread ID 关联。重要的是, checkpoint 会按时间顺序排列, 最新的 checkpoint / `StateSnapshot` 位于列表首位。
 
 ```python
 config = {"configurable": {"thread_id": "1"}}
@@ -322,7 +322,7 @@ list(graph.get_state_history(config))
 :::
 
 :::js
-You can get the full history of the graph execution for a given thread by calling `graph.getStateHistory(config)`. This will return a list of `StateSnapshot` objects associated with the thread ID provided in the config. Importantly, the checkpoints will be ordered chronologically with the most recent checkpoint / `StateSnapshot` being the first in the list.
+你可以通过调用 `graph.getStateHistory(config)` 获取给定 thread 的完整 graph 执行历史。它会返回一个 `StateSnapshot` 对象列表, 这些对象与 config 中提供的 thread ID 关联。重要的是, checkpoint 会按时间顺序排列, 最新的 checkpoint / `StateSnapshot` 位于列表首位。
 
 ```typescript
 const config = { configurable: { thread_id: "1" } };
@@ -333,7 +333,7 @@ for await (const state of graph.getStateHistory(config)) {
 :::
 
 :::python
-In this example, the output of @[`get_state_history`] will look like this:
+在这个示例中, @[`get_state_history`] 的输出如下所示:
 
 ```
 [
@@ -378,7 +378,7 @@ In this example, the output of @[`get_state_history`] will look like this:
 :::
 
 :::js
-In this example, the output of `getStateHistory` will look like this:
+在这个示例中, `getStateHistory` 的输出如下所示:
 
 ```
 [
@@ -503,9 +503,9 @@ In this example, the output of `getStateHistory` will look like this:
 
 ![State](/oss/images/get_state.jpg)
 
-#### Find a specific checkpoint
+#### 查找特定的 checkpoint
 
-You can filter the state history to find checkpoints matching specific criteria:
+你可以筛选 state 历史, 找出符合特定条件的 checkpoint:
 
 :::python
 ```python
@@ -551,33 +551,33 @@ const interrupted = history.find(
 ```
 :::
 
-### Replay
+### 重放
 
-Replay re-executes steps from a prior checkpoint. Invoke the graph with a prior `checkpoint_id` to re-run nodes after that checkpoint. Nodes before the checkpoint are skipped (their results are already saved). Nodes after the checkpoint re-execute, including any LLM calls, API requests, or [interrupts](/oss/langgraph/interrupts) — which are always re-triggered during replay.
+重放会从先前的 checkpoint 重新执行步骤。用先前的 `checkpoint_id` 调用 graph, 即可重新运行该 checkpoint 之后的 node。checkpoint 之前的 node 会被跳过 (它们的结果已经保存)。checkpoint 之后的 node 会重新执行, 包括任何 LLM 调用、API 请求或 [interrupt](/oss/langgraph/interrupts) — 在重放期间它们总会被重新触发。
 
-See [Time travel](/oss/langgraph/use-time-travel) for full details and code examples on replaying past executions.
+关于重放先前执行的完整细节与代码示例, 见 [Time travel](/oss/langgraph/use-time-travel)。
 
 ![Replay](/oss/images/re_play.png)
 
-### Update state
+### 更新 state
 
 :::python
-You can edit the graph state using @[`update_state`]. This creates a new checkpoint with the updated values — it does not modify the original checkpoint. The update is treated the same as a node update: values are passed through [reducer](/oss/langgraph/graph-api#reducers) functions when defined, so channels with reducers _accumulate_ values rather than overwrite them.
+你可以用 @[`update_state`] 编辑 graph state。它会用更新后的值创建一个新 checkpoint — 不会修改原始 checkpoint。该更新的处理方式与 node 更新相同: 如果定义了 [reducer](/oss/langgraph/graph-api#reducers) 函数, 值会经过它们处理, 因此带 reducer 的通道会_累积_值, 而不是覆盖。
 
-You can optionally specify `as_node` to control which node the update is treated as coming from, which affects which node executes next. See [Time travel: `as_node`](/oss/langgraph/use-time-travel#from-a-specific-node) for details.
+你可以选择指定 `as_node` 来控制该更新被视为来自哪个 node, 这会影响接下来哪个 node 执行。细节见 [Time travel: `as_node`](/oss/langgraph/use-time-travel#from-a-specific-node)。
 :::
 
 :::js
-You can edit the graph state using `graph.updateState()`. This creates a new checkpoint with the updated values — it does not modify the original checkpoint. The update is treated the same as a node update: values are passed through [reducer](/oss/langgraph/graph-api#reducers) functions when defined, so channels with reducers _accumulate_ values rather than overwrite them.
+你可以用 `graph.updateState()` 编辑 graph state。它会用更新后的值创建一个新 checkpoint — 不会修改原始 checkpoint。该更新的处理方式与 node 更新相同: 如果定义了 [reducer](/oss/langgraph/graph-api#reducers) 函数, 值会经过它们处理, 因此带 reducer 的通道会_累积_值, 而不是覆盖。
 
-You can optionally specify `asNode` to control which node the update is treated as coming from, which affects which node executes next. See [Time travel: `asNode`](/oss/langgraph/use-time-travel#from-a-specific-node) for details.
+你可以选择指定 `asNode` 来控制该更新被视为来自哪个 node, 这会影响接下来哪个 node 执行。细节见 [Time travel: `asNode`](/oss/langgraph/use-time-travel#from-a-specific-node)。
 :::
 
 ![Update](/oss/images/checkpoints_full_story.jpg)
 
-## Durability modes
+## 持久性模式
 
-LangGraph supports three durability modes that let you balance performance and data consistency. You can specify the durability mode when calling any graph execution method:
+LangGraph 支持三种持久性模式, 让你在性能与数据一致性之间取得平衡。你可以在调用任何 graph 执行方法时指定持久性模式:
 
 :::python
 ```python
@@ -597,88 +597,88 @@ await graph.stream(
 ```
 :::
 
-The durability modes, from least to most durable, are as follows:
+持久性模式按持久性从低到高排列如下:
 
-* `"exit"`: LangGraph persists changes only when graph execution exits — successfully, with an error, or due to a human-in-the-loop interrupt. This provides the best performance for long-running graphs but means intermediate state is not saved, so you cannot recover from system failures (like process crashes) mid-execution.
-* `"async"`: LangGraph persists changes asynchronously while the next step executes. This provides good performance and durability, but there is a small risk that LangGraph does not write checkpoints if the process crashes during execution.
-* `"sync"`: LangGraph persists changes synchronously before the next step starts. This ensures that LangGraph writes every checkpoint before continuing execution, providing high durability at the cost of some performance overhead.
+* `"exit"`: LangGraph 仅在 graph 执行退出时持久化变更 — 无论是成功、出错, 还是因 human-in-the-loop interrupt。这为长时运行的 graph 提供了最佳性能, 但意味着中间 state 不会被保存, 因此你无法在执行中途从系统故障 (如进程崩溃) 中恢复。
+* `"async"`: LangGraph 会在下一步执行时以 async 方式持久化变更。这提供了良好的性能与持久性, 但如果进程在执行期间崩溃, LangGraph 有很小的可能不会写入 checkpoint。
+* `"sync"`: LangGraph 会在下一步开始前同步持久化变更。这确保 LangGraph 在继续执行之前写入每一个 checkpoint, 从而以一定的性能开销换来高持久性。
 
-## Optimize checkpoint storage
+## 优化 checkpoint 存储
 
 :::python
-By default, LangGraph checkpoints write the full value of every state channel at each super-step. For long-running threads with large accumulations—such as multi-turn conversations—this can produce significant storage growth over time.
+默认情况下, LangGraph checkpoint 会在每个 super-step 写入每个 state 通道的完整值。对于会大量累积的长时运行 thread — 例如多轮对话 — 这可能导致存储随时间显著增长。
 
-@[`DeltaChannel`] stores only incremental deltas instead of the full accumulated value, substantially reducing checkpoint size for append-heavy channels. See [DeltaChannel](/oss/langgraph/pregel#deltachannel) for usage and the storage-vs-latency tradeoff.
+@[`DeltaChannel`] 只存储增量 delta, 而不是完整的累积值, 对以追加为主的通道能大幅减小 checkpoint 体积。用法以及存储与延迟之间的权衡, 见 [DeltaChannel](/oss/langgraph/pregel#deltachannel)。
 
 <Warning>
-`DeltaChannel` requires `langgraph>=1.2` and is currently in beta. The API may change in future releases.
+`DeltaChannel` 需要 `langgraph>=1.2`, 目前处于 beta。该 API 在未来版本中可能发生变化。
 </Warning>
 :::
 
-## Checkpointer libraries
+## Checkpointer 库
 
-Under the hood, checkpointing is powered by checkpointer objects that conform to @[`BaseCheckpointSaver`] interface. LangGraph provides several checkpointer implementations, all implemented via standalone, installable libraries.
+在底层, checkpointing 由符合 @[`BaseCheckpointSaver`] 接口的 checkpointer 对象驱动。LangGraph 提供了多种 checkpointer 实现, 它们都通过独立、可安装的库实现。
 
 :::python
 <Note>
-See [checkpointer integrations](/oss/integrations/checkpointers/index) for available providers.
+可用的 provider 见 [checkpointer 集成](/oss/integrations/checkpointers/index)。
 </Note>
 
-* `langgraph-checkpoint`: The base interface for checkpointer savers (@[`BaseCheckpointSaver`]) and serialization/deserialization interface (@[`SerializerProtocol`]). Includes in-memory checkpointer implementation (@[`InMemorySaver`]) for experimentation. LangGraph comes with `langgraph-checkpoint` included.
-* `langgraph-checkpoint-sqlite`: An implementation of LangGraph checkpointer that uses SQLite database (@[`SqliteSaver`] / @[`AsyncSqliteSaver`]). Ideal for experimentation and local workflows. Needs to be installed separately.
-* `langgraph-checkpoint-postgres`: An advanced checkpointer that uses Postgres database (@[`PostgresSaver`] / @[`AsyncPostgresSaver`]), used in LangSmith. Ideal for using in production. Needs to be installed separately.
-* `langgraph-checkpoint-mongodb`: An advanced checkpointer that uses MongoDB (`MongoDBSaver` / `AsyncMongoDBSaver`). Ideal for using in production. Needs to be installed separately.
-* `langchain-azure-cosmosdb`: An implementation of LangGraph checkpointer that uses Azure Cosmos DB for NoSQL (@[`CosmosDBSaverSync`] / @[`CosmosDBSaver`]). Ideal for using in production with Azure. Supports both sync and async operations, with Microsoft Entra ID authentication. Needs to be installed separately.
+* `langgraph-checkpoint`: checkpointer saver 的基础接口 (@[`BaseCheckpointSaver`]) 以及序列化/反序列化接口 (@[`SerializerProtocol`])。包含用于实验的内存 checkpointer 实现 (@[`InMemorySaver`])。LangGraph 自带 `langgraph-checkpoint`。
+* `langgraph-checkpoint-sqlite`: 使用 SQLite 数据库的 LangGraph checkpointer 实现 (@[`SqliteSaver`] / @[`AsyncSqliteSaver`])。适合实验与本地 workflow。需要单独安装。
+* `langgraph-checkpoint-postgres`: 使用 Postgres 数据库的高级 checkpointer (@[`PostgresSaver`] / @[`AsyncPostgresSaver`]), 用于 LangSmith。适合在生产环境使用。需要单独安装。
+* `langgraph-checkpoint-mongodb`: 使用 MongoDB 的高级 checkpointer (`MongoDBSaver` / `AsyncMongoDBSaver`)。适合在生产环境使用。需要单独安装。
+* `langchain-azure-cosmosdb`: 使用 Azure Cosmos DB for NoSQL 的 LangGraph checkpointer 实现 (@[`CosmosDBSaverSync`] / @[`CosmosDBSaver`])。适合在 Azure 上的生产环境使用。同时支持同步与 async 操作, 并使用 Microsoft Entra ID 认证。需要单独安装。
 :::
 
 :::js
-* `@langchain/langgraph-checkpoint`: The base interface for checkpointer savers (@[`BaseCheckpointSaver`]) and serialization/deserialization interface (@[`SerializerProtocol`]). Includes in-memory checkpointer implementation (@[`MemorySaver`]) for experimentation. LangGraph comes with `@langchain/langgraph-checkpoint` included.
-* `@langchain/langgraph-checkpoint-sqlite`: An implementation of LangGraph checkpointer that uses SQLite database (@[`SqliteSaver`]). Ideal for experimentation and local workflows. Needs to be installed separately.
-* `@langchain/langgraph-checkpoint-postgres`: An advanced checkpointer that uses Postgres database (@[`PostgresSaver`]), used in LangSmith. Ideal for using in production. Needs to be installed separately.
-* `@langchain/langgraph-checkpoint-mongodb`: An advanced checkpointer (`MongoDBSaver`) and long-term memory store (`MongoDBStore`) backed by MongoDB. The store supports cross-thread persistence with optional integrated vector search. Ideal for production use. Needs to be installed separately.
-* `@langchain/langgraph-checkpoint-redis`: An advanced checkpointer that uses Redis database (`RedisSaver`). Ideal for using in production. Needs to be installed separately.
+* `@langchain/langgraph-checkpoint`: checkpointer saver 的基础接口 (@[`BaseCheckpointSaver`]) 以及序列化/反序列化接口 (@[`SerializerProtocol`])。包含用于实验的内存 checkpointer 实现 (@[`MemorySaver`])。LangGraph 自带 `@langchain/langgraph-checkpoint`。
+* `@langchain/langgraph-checkpoint-sqlite`: 使用 SQLite 数据库的 LangGraph checkpointer 实现 (@[`SqliteSaver`])。适合实验与本地 workflow。需要单独安装。
+* `@langchain/langgraph-checkpoint-postgres`: 使用 Postgres 数据库的高级 checkpointer (@[`PostgresSaver`]), 用于 LangSmith。适合在生产环境使用。需要单独安装。
+* `@langchain/langgraph-checkpoint-mongodb`: 使用 MongoDB 的高级 checkpointer (`MongoDBSaver`) 与 long-term memory store (`MongoDBStore`)。该 store 支持跨线程 persistence, 并可选集成向量搜索。适合在生产环境使用。需要单独安装。
+* `@langchain/langgraph-checkpoint-redis`: 使用 Redis 数据库的高级 checkpointer (`RedisSaver`)。适合在生产环境使用。需要单独安装。
 :::
 
-### Checkpointer interface
+### Checkpointer 接口
 
 :::python
-Each checkpointer conforms to @[`BaseCheckpointSaver`] interface and implements the following methods:
+每个 checkpointer 都符合 @[`BaseCheckpointSaver`] 接口, 并实现以下方法:
 
-* `.put` - Store a checkpoint with its configuration and metadata.
-* `.put_writes` - Store intermediate writes linked to a checkpoint (i.e. [pending writes](#pending-writes)).
-* `.get_tuple` - Fetch a checkpoint tuple using for a given configuration (`thread_id` and `checkpoint_id`). This is used to populate `StateSnapshot` in `graph.get_state()`.
-* `.list` - List checkpoints that match a given configuration and filter criteria. This is used to populate state history in `graph.get_state_history()`
+* `.put` - 存储一个 checkpoint 及其 config 与 metadata。
+* `.put_writes` - 存储与某个 checkpoint 关联的中间写入 (即 [pending writes](#pending-writes))。
+* `.get_tuple` - 根据给定 config (`thread_id` 与 `checkpoint_id`) 获取 checkpoint tuple。它用于填充 `graph.get_state()` 中的 `StateSnapshot`。
+* `.list` - 列出匹配给定 config 与筛选条件的 checkpoint。它用于填充 `graph.get_state_history()` 中的 state 历史。
 
-If the checkpointer is used with asynchronous graph execution (i.e. executing the graph via `.ainvoke`, `.astream`, `.abatch`), asynchronous versions of the above methods will be used (`.aput`, `.aput_writes`, `.aget_tuple`, `.alist`).
+如果 checkpointer 与 async graph 执行一起使用 (即通过 `.ainvoke`、`.astream`、`.abatch` 执行 graph), 则会使用上述方法的 async 版本 (`.aput`、`.aput_writes`、`.aget_tuple`、`.alist`)。
 
 <Note>
-For running your graph asynchronously, you can use @[`InMemorySaver`], or async versions of Sqlite/Postgres checkpointers -- @[`AsyncSqliteSaver`] / @[`AsyncPostgresSaver`] checkpointers.
+若要 async 地运行 graph, 你可以使用 @[`InMemorySaver`], 或 Sqlite/Postgres checkpointer 的 async 版本 -- @[`AsyncSqliteSaver`] / @[`AsyncPostgresSaver`] checkpointer。
 </Note>
 :::
 
 :::js
-Each checkpointer conforms to the @[`BaseCheckpointSaver`] interface and implements the following methods:
+每个 checkpointer 都符合 @[`BaseCheckpointSaver`] 接口, 并实现以下方法:
 
-* `.put` - Store a checkpoint with its configuration and metadata.
-* `.putWrites` - Store intermediate writes linked to a checkpoint (i.e. [pending writes](#pending-writes)).
-* `.getTuple` - Fetch a checkpoint tuple using for a given configuration (`thread_id` and `checkpoint_id`). This is used to populate `StateSnapshot` in `graph.getState()`.
-* `.list` - List checkpoints that match a given configuration and filter criteria. This is used to populate state history in `graph.getStateHistory()`
+* `.put` - 存储一个 checkpoint 及其 config 与 metadata。
+* `.putWrites` - 存储与某个 checkpoint 关联的中间写入 (即 [pending writes](#pending-writes))。
+* `.getTuple` - 根据给定 config (`thread_id` 与 `checkpoint_id`) 获取 checkpoint tuple。它用于填充 `graph.getState()` 中的 `StateSnapshot`。
+* `.list` - 列出匹配给定 config 与筛选条件的 checkpoint。它用于填充 `graph.getStateHistory()` 中的 state 历史。
 :::
 
 :::python
 
 ### Serializer
 
-When checkpointers save the graph state, they need to serialize the channel values in the state. This is done using serializer objects.
+checkpointer 保存 graph state 时, 需要序列化 state 中的通道值。这通过 serializer 对象完成。
 
-`langgraph_checkpoint` defines @[protocol][SerializerProtocol] for implementing serializers provides a default implementation (@[`JsonPlusSerializer`]) that handles a wide variety of types, including LangChain and LangGraph primitives, datetimes, enums and more.
+`langgraph_checkpoint` 定义了用于实现 serializer 的 @[protocol][SerializerProtocol], 并提供了默认实现 (@[`JsonPlusSerializer`]), 它能处理多种类型, 包括 LangChain 与 LangGraph 的原语、datetime、enum 等。
 
-#### Serialization with `pickle`
+#### 用 `pickle` 序列化
 
-The default serializer, @[`JsonPlusSerializer`], uses ormsgpack and JSON under the hood, which is not suitable for all types of objects.
+默认 serializer @[`JsonPlusSerializer`] 在底层使用 ormsgpack 与 JSON, 这并不适合所有类型的对象。
 
-If you want to fallback to pickle for objects not currently supported by the msgpack encoder (such as Pandas dataframes),
-you can use the `pickle_fallback` argument of the @[`JsonPlusSerializer`]:
+如果你希望对 msgpack 编码器当前不支持的对象 (例如 Pandas dataframe) 回退到 pickle,
+可以使用 @[`JsonPlusSerializer`] 的 `pickle_fallback` 参数:
 
 ```python
 from langgraph.checkpoint.memory import InMemorySaver
@@ -690,9 +690,9 @@ graph.compile(
 )
 ```
 
-#### Encryption
+#### 加密
 
-Checkpointers can optionally encrypt all persisted state. To enable this, pass an instance of @[`EncryptedSerializer`] to the `serde` argument of any @[`BaseCheckpointSaver`] implementation. The easiest way to create an encrypted serializer is via @[`from_pycryptodome_aes`], which reads the AES key from the `LANGGRAPH_AES_KEY` environment variable (or accepts a `key` argument):
+checkpointer 可以选择加密所有持久化的 state。要启用它, 请把 @[`EncryptedSerializer`] 实例传入任何 @[`BaseCheckpointSaver`] 实现的 `serde` 参数。创建加密 serializer 最简单的方式是通过 @[`from_pycryptodome_aes`], 它会从 `LANGGRAPH_AES_KEY` 环境变量读取 AES key (或接受 `key` 参数):
 
 ```python
 import sqlite3
@@ -713,32 +713,32 @@ checkpointer = PostgresSaver.from_conn_string("postgresql://...", serde=serde)
 checkpointer.setup()
 ```
 
-When running on LangSmith, encryption is automatically enabled whenever `LANGGRAPH_AES_KEY` is present, so you only need to provide the environment variable. Other encryption schemes can be used by implementing @[`CipherProtocol`] and supplying it to @[`EncryptedSerializer`].
+在 LangSmith 上运行时, 只要存在 `LANGGRAPH_AES_KEY`, 加密就会自动启用, 因此你只需提供该环境变量。通过实现 @[`CipherProtocol`] 并将其提供给 @[`EncryptedSerializer`], 还可以使用其他加密方案。
 
 :::
 
-## Build a custom checkpointer
+## 构建自定义 checkpointer
 
 :::python
 
 <Tip>
-Validate your implementation as you build using the [conformance test suite](#testing-with-the-conformance-suite). It covers all five base methods and extended capabilities including delta channels. Run it in CI before shipping.
+在构建过程中, 使用[一致性测试套件](#testing-with-the-conformance-suite)验证你的实现。它涵盖了全部五个基础方法以及包括 delta channel 在内的扩展能力。在发布前请在 CI 中运行它。
 </Tip>
 
-This section covers implementing `BaseCheckpointSaver` from scratch for a custom storage backend. If you already have a working checkpointer and only need to add delta channel support, jump to [Delta channel support](#delta-channel-support).
+本节介绍如何为自定义存储 backend 从零实现 `BaseCheckpointSaver`。如果你已经有一个可用的 checkpointer, 只想添加 delta channel 支持, 请跳到 [Delta channel support](#delta-channel-support)。
 
-### Overview
+### 概览
 
-LangGraph's persistence layer is built on two storage abstractions:
+LangGraph 的 persistence 层建立在两个存储抽象之上:
 
-- **Checkpoints table** — one row per superstep; stores the serialized graph state (`channel_values`, `channel_versions`, `versions_seen`) and links to its parent checkpoint.
-- **Writes table** — one row per node output within a superstep; stores `(task_id, channel, value)` tuples linked to a checkpoint.
+- **Checkpoints 表** — 每个 superstep 一行; 存储序列化后的 graph state (`channel_values`、`channel_versions`、`versions_seen`), 并链接到其父 checkpoint。
+- **Writes 表** — superstep 内每个 node 输出一行; 存储与某个 checkpoint 关联的 `(task_id, channel, value)` tuple。
 
-Your checkpointer manages both tables. `put` writes a checkpoint row; `put_writes` writes node-output rows; `get_tuple` reads both back into a `CheckpointTuple`.
+你的 checkpointer 管理这两张表。`put` 写入一行 checkpoint; `put_writes` 写入 node 输出行; `get_tuple` 把两者读回为一个 `CheckpointTuple`。
 
-### Base contract
+### 基础契约
 
-Subclass `BaseCheckpointSaver` and implement these five methods. All are required — a missing base method raises `NotImplementedError` at runtime.
+继承 `BaseCheckpointSaver` 并实现以下五个方法。它们都是必需的 — 缺少任何一个基础方法都会在 runtime 抛出 `NotImplementedError`。
 
 ```python
 from collections.abc import AsyncIterator, Iterator, Sequence
@@ -791,13 +791,13 @@ class MyCheckpointer(BaseCheckpointSaver):
 
 #### put / aput
 
-Store one checkpoint row. Return an updated config with the stored `checkpoint_id`.
+存储一行 checkpoint。返回带有已存储 `checkpoint_id` 的更新后 config。
 
-Key requirements:
+关键要求:
 
-- Serialize the checkpoint using `self.serde.dumps_typed(checkpoint)` — this handles all LangGraph-native types including `_DeltaSnapshot` blobs used by delta channels.
-- Store `metadata` in full — do not strip unknown keys. LangGraph adds new metadata fields (such as `counters_since_delta_snapshot` for delta channels) in minor releases; discarding them silently breaks features.
-- Store `config["configurable"].get("checkpoint_id")` as the parent checkpoint ID so `get_tuple` can populate `parent_config`.
+- 使用 `self.serde.dumps_typed(checkpoint)` 序列化 checkpoint — 它会处理所有 LangGraph 原生类型, 包括 delta channel 使用的 `_DeltaSnapshot` blob。
+- 完整存储 `metadata` — 不要剔除未知键。LangGraph 会在小版本中新增 metadata 字段 (例如 delta channel 的 `counters_since_delta_snapshot`); 丢弃它们会在无声无息中破坏功能。
+- 将 `config["configurable"].get("checkpoint_id")` 存储为父 checkpoint ID, 以便 `get_tuple` 填充 `parent_config`。
 
 ```python
 async def aput(self, config, checkpoint, metadata, new_versions):
@@ -825,7 +825,7 @@ async def aput(self, config, checkpoint, metadata, new_versions):
 
 #### put_writes / aput_writes
 
-Store node-output rows for a single task within the current superstep. These rows are linked to the checkpoint by `(thread_id, checkpoint_ns, checkpoint_id)`.
+为当前 superstep 内的单个 task 存储 node 输出行。这些行通过 `(thread_id, checkpoint_ns, checkpoint_id)` 与 checkpoint 关联。
 
 ```python
 async def aput_writes(self, config, writes, task_id, task_path=""):
@@ -843,16 +843,16 @@ async def aput_writes(self, config, writes, task_id, task_path=""):
     await self.db.executemany("INSERT INTO writes (...) VALUES (...)", rows)
 ```
 
-Import `WRITES_IDX_MAP` from `langgraph.checkpoint.base`. It maps special channels (`__error__`, `__interrupt__`, etc.) to reserved negative indices so they do not collide with regular write indices.
+从 `langgraph.checkpoint.base` 导入 `WRITES_IDX_MAP`。它把特殊通道 (`__error__`、`__interrupt__` 等) 映射到预留的负索引, 以免与常规写入索引冲突。
 
 #### get_tuple / aget_tuple
 
-Retrieve a checkpoint. The config may contain:
+获取一个 checkpoint。config 可能包含:
 
-- **No `checkpoint_id`** — return the latest checkpoint for the thread + namespace.
-- **A specific `checkpoint_id`** — return that exact checkpoint.
+- **没有 `checkpoint_id`** — 返回 thread + namespace 的最新 checkpoint。
+- **指定了某个 `checkpoint_id`** — 返回那个确切的 checkpoint。
 
-**Both paths must work correctly.** The specific-id path is used for time travel and — critically — for delta channel state reconstruction on every graph invocation (see [Delta channel support](#delta-channel-support)). A broken specific-id lookup silently corrupts delta channel state.
+**两条路径都必须正确工作。** 指定 id 的路径用于 time travel, 并且 — 至关重要地 — 用于每次 graph 调用时的 delta channel state 重建 (见 [Delta channel support](#delta-channel-support))。被破坏的 specific-id 查找会在无声无息中损坏 delta channel state。
 
 ```python
 async def aget_tuple(self, config):
@@ -917,22 +917,22 @@ async def aget_tuple(self, config):
 ```
 
 <Warning>
-**Row key / index design matters for the specific-id lookup.** If your storage uses a time-ordered key (e.g., a reversed timestamp) that does not embed `checkpoint_id`, you cannot do a direct row read by id. You must either encode `checkpoint_id` in the row key, or build a secondary index. A scan with a value filter on every lookup works but does not scale.
+**行键 / 索引设计对 specific-id 查找至关重要。** 如果你的存储使用按时间排序的键 (例如反转的时间戳), 而其中并未嵌入 `checkpoint_id`, 那么你就无法按 id 直接读取行。你必须在行键中编码 `checkpoint_id`, 或者构建二级索引。每次查找都对值做扫描虽然可行, 但无法扩展。
 </Warning>
 
 #### list / alist
 
-Return checkpoints for a thread, newest first. Respect `before` (return only checkpoints older than that config's `checkpoint_id`) and `limit`.
+返回某个 thread 的 checkpoint, 最新的在前。要遵循 `before` (只返回比该 config 的 `checkpoint_id` 更早的 checkpoint) 与 `limit`。
 
 #### delete_thread / adelete_thread
 
-Delete all checkpoints and writes for a thread. Both checkpoint rows and write rows must be deleted.
+删除某个 thread 的所有 checkpoint 与写入。checkpoint 行与 write 行都必须删除。
 
-### Row key / index design
+### 行键 / 索引设计
 
-How you store and index checkpoints directly affects correctness and performance.
+你如何存储与索引 checkpoint, 直接影响正确性与性能。
 
-**Recommended schema (SQL):**
+**推荐模式 (SQL):**
 
 ```sql
 CREATE TABLE checkpoints (
@@ -960,53 +960,53 @@ CREATE TABLE writes (
 );
 ```
 
-Because `checkpoint_id` is a ULID, it sorts lexicographically — larger values are newer. "Get latest" is `ORDER BY checkpoint_id DESC LIMIT 1`; "get by id" is an equality lookup on the primary key.
+由于 `checkpoint_id` 是 ULID, 它按字典序排序 — 值越大越新。"Get latest" 是 `ORDER BY checkpoint_id DESC LIMIT 1`; "get by id" 则是对主键的等值查找。
 
-**For non-SQL stores:** the same principle applies. Whatever key scheme you use, direct lookup by `(thread_id, checkpoint_ns, checkpoint_id)` must be O(1) or close to it. Avoid designs where the only way to find a checkpoint by id is to scan all rows for a thread.
+**对于非 SQL 存储:** 同样的原则适用。无论你使用什么键方案, 按 `(thread_id, checkpoint_ns, checkpoint_id)` 的直接查找必须是 O(1) 或接近 O(1)。要避免那种只能通过扫描某个 thread 的所有行来按 id 找到 checkpoint 的设计。
 
-### Serialization
+### 序列化
 
-Always use `self.serde` (inherited from `BaseCheckpointSaver`, defaults to `JsonPlusSerializer`) for checkpoints, writes, and metadata. Do not use `pickle` directly for metadata — it works, but `JsonPlusSerializer` produces human-readable output and handles versioning better.
+对 checkpoint、write 与 metadata 始终使用 `self.serde` (继承自 `BaseCheckpointSaver`, 默认为 `JsonPlusSerializer`)。不要直接对 metadata 使用 `pickle` — 它能用, 但 `JsonPlusSerializer` 生成的输出可读性更好, 且对版本管理处理得更好。
 
-`JsonPlusSerializer` handles all LangGraph-native types automatically:
-- `_DeltaSnapshot` — the sentinel blob used by delta channels (msgpack ext code 7)
-- Pydantic v2 models, dataclasses, numpy arrays, datetimes, enums, and more
+`JsonPlusSerializer` 会自动处理所有 LangGraph 原生类型:
+- `_DeltaSnapshot` — delta channel 使用的哨兵 blob (msgpack 扩展码 7)
+- Pydantic v2 模型、dataclass、numpy 数组、datetime、enum 等
 
-If you write a custom serializer, make sure it can round-trip `_DeltaSnapshot` from `langgraph.checkpoint.serde.types`.
+如果你编写自定义 serializer, 请确保它能对来自 `langgraph.checkpoint.serde.types` 的 `_DeltaSnapshot` 进行往返 (round-trip) 处理。
 
-### Extended capabilities
+### 扩展能力
 
-These methods are optional but unlock additional Agent Server features. Implement them if your storage backend can support them efficiently.
+这些方法是可选的, 但能解锁额外的 Agent Server 功能。如果你的存储 backend 能高效支持它们, 就实现它们。
 
-| Method | What it enables |
+| 方法 | 启用的功能 |
 |---|---|
-| `adelete_for_runs` | Rollback multitask strategy |
-| `acopy_thread` | Efficient thread forking |
-| `aprune` | Thread history pruning |
-| `aget_delta_channel_history` | Efficient delta channel state reconstruction (see below) |
+| `adelete_for_runs` | 回滚多任务策略 |
+| `acopy_thread` | 高效的 thread 分叉 |
+| `aprune` | thread 历史裁剪 |
+| `aget_delta_channel_history` | 高效的 delta channel state 重建 (见下文) |
 
-Agent Server auto-detects which capabilities your checkpointer implements at startup and activates the corresponding features.
+Agent Server 会在启动时自动检测你的 checkpointer 实现了哪些能力, 并激活相应的功能。
 
 ### Delta channel support
 
 <Info>
-**DeltaChannel is in beta.** The API and on-disk representation may change while the design stabilizes.
+**DeltaChannel 处于 beta。** 在设计稳定之前, API 与磁盘上的表示形式可能发生变化。
 </Info>
 
-`DeltaChannel` is a reducer channel that stores only a sentinel (`MISSING`) in checkpoint blobs instead of the full channel value. State is reconstructed by replaying ancestor writes through the reducer. This makes checkpoint blobs O(1) per step instead of O(N) for channels like `messages` that accumulate over time.
+`DeltaChannel` 是一种 reducer 通道, 它在 checkpoint blob 中只存储一个哨兵 (`MISSING`), 而不是完整的通道值。state 通过将祖先写入经由 reducer 重放来重建。这使得对于像 `messages` 这种会随时间累积的通道, checkpoint blob 每步为 O(1), 而不是 O(N)。
 
-#### What the runtime needs
+#### runtime 需要什么
 
-When loading a checkpoint whose delta channels are absent from `channel_values`, LangGraph calls `saver.get_delta_channel_history(config=config, channels=[...])`. This returns, for each channel:
+在加载某个 checkpoint, 而其 delta channel 不在 `channel_values` 中时, LangGraph 会调用 `saver.get_delta_channel_history(config=config, channels=[...])`。它针对每个通道返回:
 
-- **`writes`** — all writes to that channel in the ancestor chain, oldest first, up to the nearest snapshot.
-- **`seed`** (optional) — the stored `_DeltaSnapshot` blob at the nearest ancestor that has one; absent if the walk reaches the root without finding a snapshot.
+- **`writes`** — 祖先链中对该通道的所有写入, 最早的在前, 直到最近的 snapshot。
+- **`seed`** (可选) — 最近的拥有 `_DeltaSnapshot` blob 的祖先处所存储的该 blob; 如果向上遍历到达根节点仍未找到 snapshot, 则不存在。
 
-The runtime then calls `channel.from_checkpoint(seed)` and `channel.replay_writes(writes)` to reconstruct the live value.
+随后 runtime 会调用 `channel.from_checkpoint(seed)` 与 `channel.replay_writes(writes)` 来重建当前值。
 
-#### Default implementation
+#### 默认实现
 
-`BaseCheckpointSaver` provides a default `get_delta_channel_history` that works with any correct `get_tuple` implementation:
+`BaseCheckpointSaver` 提供了一个默认的 `get_delta_channel_history`, 它可与任何正确的 `get_tuple` 实现配合使用:
 
 ```python
 # Simplified from BaseCheckpointSaver
@@ -1036,11 +1036,11 @@ def get_delta_channel_history(self, *, config, channels):
     }
 ```
 
-**The critical dependency:** `get_tuple(cursor)` is always called with a specific `checkpoint_id` (the parent's id). If that lookup returns `None`, the walk stops immediately and every delta channel reconstructs as empty — silently, with no error. This is why the specific-id path in `get_tuple` must be correct.
+**关键依赖:** `get_tuple(cursor)` 总是以特定的 `checkpoint_id` (父级的 id) 被调用。如果该查找返回 `None`, 遍历会立即停止, 并且每个 delta channel 都会被重建为空 — 静默地、不报任何错误。这就是为什么 `get_tuple` 中 specific-id 路径必须正确。
 
-#### Performance override
+#### 性能覆写
 
-The default walk issues one `get_tuple` call per ancestor checkpoint. For backends with good query support, override `get_delta_channel_history` (and its async twin) to retrieve the ancestor chain and writes in two queries:
+默认遍历会针对每个祖先 checkpoint 发起一次 `get_tuple` 调用。对于查询支持良好的 backend, 可以覆写 `get_delta_channel_history` (及其 async 版) 以通过两次查询获取祖先链与写入:
 
 ```python
 async def aget_delta_channel_history(self, *, config, channels):
@@ -1115,23 +1115,23 @@ async def aget_delta_channel_history(self, *, config, channels):
     return result
 ```
 
-#### Pruning with delta channels
+#### 带 delta channel 的裁剪
 
-`DeltaChannel` state is not self-contained in a single checkpoint — it depends on the ancestor write chain back to the nearest `_DeltaSnapshot`. If you implement `prune` or `delete_for_runs`, you must not delete write rows that a surviving checkpoint's delta channels depend on.
+`DeltaChannel` state 并不自包含于单个 checkpoint 之中 — 它依赖于回溯到最近 `_DeltaSnapshot` 的祖先写入链。如果你实现 `prune` 或 `delete_for_runs`, 就绝不能删除某个存留 checkpoint 的 delta channel 所依赖的 write 行。
 
-Safe options:
+安全选项:
 
-1. **Walk before pruning** — for each checkpoint you intend to keep, walk its ancestor chain and mark all write rows up to the nearest `_DeltaSnapshot` as non-deletable.
-2. **Force a snapshot before pruning** — rewrite `channel_values[ch] = _DeltaSnapshot(reconstructed_value)` on the checkpoint you are keeping, then delete ancestors freely.
-3. **Skip pruning for delta-channel threads** — the safest short-term option if you do not yet need pruning.
+1. **裁剪前先遍历** — 对每个你打算保留的 checkpoint, 遍历其祖先链, 并把直到最近 `_DeltaSnapshot` 的所有 write 行标记为不可删除。
+2. **裁剪前强制生成 snapshot** — 在你保留的 checkpoint 上重写 `channel_values[ch] = _DeltaSnapshot(reconstructed_value)`, 然后就可以随意删除祖先。
+3. **对 delta-channel thread 跳过裁剪** — 如果你尚不需要裁剪, 这是最安全的短期选项。
 
-#### Copy thread with delta channels
+#### 带 delta channel 复制 thread
 
-When implementing `copy_thread`, copy the complete ancestor chain — not just the head checkpoint. The target thread must have write rows going back to at least one `_DeltaSnapshot` for every delta channel, or those channels will reconstruct as empty after the copy.
+实现 `copy_thread` 时, 要复制完整的祖先链 — 而不仅仅是头部 checkpoint。目标 thread 必须为每个 delta channel 都拥有回溯到至少一个 `_DeltaSnapshot` 的 write 行, 否则这些通道在复制后会重建为空。
 
-### Testing with the conformance suite
+### 用一致性测试套件测试
 
-`langgraph-checkpoint-conformance` validates your implementation against the full contract, including delta channel history:
+`langgraph-checkpoint-conformance` 会对照完整契约验证你的实现, 包括 delta channel 历史:
 
 ```python
 pip install langgraph-checkpoint-conformance
@@ -1156,6 +1156,8 @@ async def main():
 asyncio.run(main())
 ```
 
-The suite auto-detects which extended capabilities your checkpointer implements (including `aget_delta_channel_history`) and runs the relevant tests for each. Run it as part of your CI before shipping.
+该套件会自动检测你的 checkpointer 实现了哪些扩展能力 (包括 `aget_delta_channel_history`), 并对每项运行相关测试。在发布前把它作为 CI 的一部分运行。
 
 :::
+
+{/* 源文档版本: src/oss/langgraph/checkpointers.mdx @ 0ae6ef3d5 (2026-09-28) | 翻译日期: 2026-10-01 */}

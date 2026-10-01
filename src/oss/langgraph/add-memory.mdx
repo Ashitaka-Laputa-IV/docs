@@ -1,16 +1,16 @@
 ---
-title: Memory
+title: 记忆
 ---
 
 
-AI applications need [memory](/oss/concepts/memory) to share context across multiple interactions. In LangGraph, you can add two types of memory:
+AI 应用需要 [memory](/oss/concepts/memory) 来在多次交互之间共享上下文。在 LangGraph 中, 你可以添加两类 memory:
 
-* [Add short-term memory](#add-short-term-memory) as a part of your agent's [state](/oss/langgraph/graph-api#state) to enable multi-turn conversations.
-* [Add long-term memory](#add-long-term-memory) to store user-specific or application-level data across sessions.
+* [添加 short-term memory](#add-short-term-memory), 作为你的 agent [state](/oss/langgraph/graph-api#state) 的一部分, 以支持多轮对话。
+* [添加 long-term memory](#add-long-term-memory), 用于跨会话存储用户特定的或应用级的数据。
 
-## Add short-term memory
+## 添加 short-term memory
 
-**Short-term** memory (thread-level [persistence](/oss/langgraph/persistence)) enables agents to track multi-turn conversations. To add short-term memory:
+**Short-term** memory (thread 级的 [persistence](/oss/langgraph/persistence)) 让 agent 能够跟踪多轮对话。要添加 short-term memory:
 
 :::python
 ```python
@@ -45,9 +45,9 @@ await graph.invoke(
 ```
 :::
 
-### Use in production
+### 在生产环境使用
 
-In production, use a checkpointer backed by a database:
+在生产环境中, 请使用由数据库支持的 checkpointer:
 
 :::python
 ```python
@@ -88,14 +88,14 @@ with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight
 </Tabs>
 :::
 
-<Accordion title="Example: using Postgres checkpointer">
+<Accordion title="示例: 使用 Postgres checkpointer">
   :::python
   ```
   pip install -U "psycopg[binary,pool]" langgraph langgraph-checkpoint-postgres
   ```
 
     <Tip>
-    You need to call `checkpointer.setup()` the first time you're using Postgres checkpointer
+    首次使用 Postgres checkpointer 时, 你需要调用 `checkpointer.setup()`
     </Tip>
 
     <Tabs>
@@ -200,7 +200,7 @@ with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight
   ```
 
     <Tip>
-    You need to call `checkpointer.setup()` the first time you're using Postgres checkpointer
+    首次使用 Postgres checkpointer 时, 你需要调用 `checkpointer.setup()`
     </Tip>
 
   ```typescript
@@ -254,15 +254,15 @@ with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight
   :::
 </Accordion>
 
-<Accordion title="Example: using MongoDB checkpointer">
+<Accordion title="示例: 使用 MongoDB checkpointer">
   :::python
   ```
   pip install -U pymongo langgraph langgraph-checkpoint-mongodb
   ```
 
     <Tip>
-    **Setup**
-    To use the [MongoDB checkpointer](https://pypi.org/project/langgraph-checkpoint-mongodb/), you will need a MongoDB cluster. Follow [this guide](https://www.mongodb.com/docs/guides/atlas/cluster/) to create a cluster if you don't already have one. For an agent-focused walkthrough, see [short-term memory with MongoDB Atlas](/oss/integrations/memory/mongodb-short-term-memory).
+    **设置**
+    要使用 [MongoDB checkpointer](https://pypi.org/project/langgraph-checkpoint-mongodb/), 你需要一个 MongoDB 集群。如果你还没有, 请按照 [本指南](https://www.mongodb.com/docs/guides/atlas/cluster/) 创建一个集群。若要查看面向 agent 的完整讲解, 请参阅 [short-term memory with MongoDB Atlas](/oss/integrations/memory/mongodb-short-term-memory)。
     </Tip>
 
     <Tabs>
@@ -365,8 +365,8 @@ with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight
   ```
 
   <Tip>
-  **Setup**
-  To use `MongoDBSaver`, you will need a MongoDB cluster. Follow [this guide](https://www.mongodb.com/docs/guides/atlas/cluster/) to create a cluster if you don't already have one. For an agent-focused walkthrough, see [short-term memory with MongoDB Atlas](/oss/integrations/memory/mongodb-short-term-memory).
+  **设置**
+  要使用 `MongoDBSaver`, 你需要一个 MongoDB 集群。如果你还没有, 请按照 [本指南](https://www.mongodb.com/docs/guides/atlas/cluster/) 创建一个集群。若要查看面向 agent 的完整讲解, 请参阅 [short-term memory with MongoDB Atlas](/oss/integrations/memory/mongodb-short-term-memory)。
   </Tip>
 
   ```typescript
@@ -417,13 +417,13 @@ with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight
 </Accordion>
 
 :::python
-<Accordion title="Example: using Redis checkpointer">
+<Accordion title="示例: 使用 Redis checkpointer">
   ```
   pip install -U langgraph langgraph-checkpoint-redis
   ```
 
     <Tip>
-    You need to call `checkpointer.setup()` the first time you're using Redis checkpointer.
+    首次使用 Redis checkpointer 时, 你需要调用 `checkpointer.setup()`。
     </Tip>
 
     <Tabs>
@@ -522,18 +522,18 @@ with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight
     </Tabs>
 </Accordion>
 
-<Accordion title="Example: using Oracle checkpointer">
+<Accordion title="示例: 使用 Oracle checkpointer">
   ```
   pip install -U langgraph langgraph-oracledb
   ```
 
     <Note>
-    **Setup**
-    To use the [Oracle checkpointer](https://pypi.org/project/langgraph-oracledb/), you will need an Oracle AI Database instance. A local container (for example `gvenzl/oracle-free:23-slim`) or an Oracle Autonomous Database in OCI both work.
+    **设置**
+    要使用 [Oracle checkpointer](https://pypi.org/project/langgraph-oracledb/), 你需要一个 Oracle AI Database 实例。本地容器 (例如 `gvenzl/oracle-free:23-slim`) 或 OCI 中的 Oracle Autonomous Database 都可以。
     </Note>
 
     <Tip>
-    You need to call `checkpointer.setup()` the first time you're using the Oracle checkpointer.
+    首次使用 Oracle checkpointer 时, 你需要调用 `checkpointer.setup()`。
     </Tip>
 
     <Tabs>
@@ -633,9 +633,9 @@ with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight
 </Accordion>
 :::
 
-### Use in subgraphs
+### 在 subgraphs 中使用
 
-If your graph contains [subgraphs](/oss/langgraph/use-subgraphs), you only need to provide the checkpointer when compiling the parent graph. LangGraph will automatically propagate the checkpointer to the child subgraphs.
+如果你的 graph 包含 [subgraphs](/oss/langgraph/use-subgraphs), 你只需在编译父 graph 时提供 checkpointer。LangGraph 会自动把 checkpointer 传播到子 subgraphs。
 
 :::python
 ```python
@@ -690,7 +690,7 @@ const graph = builder.compile({ checkpointer });
 ```
 :::
 
-You can configure subgraph-specific checkpointing behavior. See [subgraph persistence](/oss/langgraph/use-subgraphs#subgraph-persistence) for details on persistence levels including interrupt support and stateful continuations.
+你可以配置 subgraph 特定的 checkpointing 行为。有关 persistence 层级 (包括 interrupt 支持与有状态的续跑) 的详细信息, 请参阅 [subgraph persistence](/oss/langgraph/use-subgraphs#subgraph-persistence)。
 
 :::python
 ```python
@@ -706,9 +706,9 @@ const subgraph = subgraphBuilder.compile({ checkpointer: true });  // [!code hig
 ```
 :::
 
-## Add long-term memory
+## 添加 long-term memory
 
-Use long-term memory to store user-specific or application-specific data across conversations.
+使用 long-term memory 来跨对话存储用户特定的或应用特定的数据。
 
 :::python
 ```python
@@ -733,9 +733,9 @@ const graph = builder.compile({ store });
 ```
 :::
 
-### Access the store inside nodes
+### 在 node 内部访问 store
 
-Once you compile a graph with a store, LangGraph automatically injects the store into your node functions. The recommended way to access the store is through the `Runtime` object.
+一旦你用 store 编译了 graph, LangGraph 就会自动把 store 注入到你的 node 函数中。访问 store 的推荐方式是通过 `Runtime` 对象。
 
 :::python
 ```python
@@ -818,9 +818,9 @@ await graph.invoke(
 :::
 
 
-### Use in production
+### 在生产环境使用
 
-In production, use a store backed by a database:
+在生产环境中, 请使用由数据库支持的 store:
 
 :::python
 ```python
@@ -863,14 +863,14 @@ with PostgresStore.from_conn_string(DB_URI) as store:  # [!code highlight]
 </Tabs>
 :::
 
-<Accordion title="Example: using Postgres store">
+<Accordion title="示例: 使用 Postgres store">
   :::python
   ```
   pip install -U "psycopg[binary,pool]" langgraph langgraph-checkpoint-postgres
   ```
 
     <Tip>
-    You need to call `store.setup()` the first time you're using Postgres store
+    首次使用 Postgres store 时, 你需要调用 `store.setup()`
     </Tip>
 
     <Tabs>
@@ -1037,7 +1037,7 @@ with PostgresStore.from_conn_string(DB_URI) as store:  # [!code highlight]
   ```
 
     <Tip>
-    You need to call `store.setup()` the first time you're using Postgres store
+    首次使用 Postgres store 时, 你需要调用 `store.setup()`
     </Tip>
 
   ```typescript
@@ -1108,14 +1108,14 @@ with PostgresStore.from_conn_string(DB_URI) as store:  # [!code highlight]
   :::
 </Accordion>
 
-<Accordion title="Example: using MongoDB store">
+<Accordion title="示例: 使用 MongoDB store">
   :::js
   ```
   npm install @langchain/langgraph-checkpoint-mongodb
   ```
 
   <Tip>
-  For an agent-focused walkthrough, see [long-term memory with MongoDB Atlas](/oss/integrations/memory/mongodb-long-term-memory).
+  若要查看面向 agent 的完整讲解, 请参阅 [long-term memory with MongoDB Atlas](/oss/integrations/memory/mongodb-long-term-memory)。
   </Tip>
 
   ```typescript
@@ -1185,14 +1185,14 @@ with PostgresStore.from_conn_string(DB_URI) as store:  # [!code highlight]
 </Accordion>
 
 :::python
-<Accordion title="Example: using Redis store">
+<Accordion title="示例: 使用 Redis store">
 
   ```
   pip install -U langgraph langgraph-checkpoint-redis
   ```
 
     <Tip>
-    You need to call `store.setup()` the first time you're using [Redis store](https://pypi.org/project/langgraph-checkpoint-redis/).
+    首次使用 [Redis store](https://pypi.org/project/langgraph-checkpoint-redis/) 时, 你需要调用 `store.setup()`。
     </Tip>
 
     <Tabs>
@@ -1351,19 +1351,19 @@ with PostgresStore.from_conn_string(DB_URI) as store:  # [!code highlight]
     </Tabs>
 </Accordion>
 
-<Accordion title="Example: using Oracle store">
+<Accordion title="示例: 使用 Oracle store">
 
   ```
   pip install -U langgraph langgraph-oracledb langchain-openai
   ```
 
     <Note>
-    **Setup**
-    To use the [Oracle store](https://pypi.org/project/langgraph-oracledb/), you will need an Oracle AI Database instance — the vector index used for semantic `search` requires [Oracle AI Vector Search](https://docs.oracle.com/en/database/oracle/oracle-database/23/vecse/).
+    **设置**
+    要使用 [Oracle store](https://pypi.org/project/langgraph-oracledb/), 你需要一个 Oracle AI Database 实例 — 用于语义 `search` 的向量索引需要 [Oracle AI Vector Search](https://docs.oracle.com/en/database/oracle/oracle-database/23/vecse/)。
     </Note>
 
     <Tip>
-    You need to call `store.setup()` and `checkpointer.setup()` the first time you're using the Oracle store and checkpointer.
+    首次使用 Oracle store 和 checkpointer 时, 你需要调用 `store.setup()` 和 `checkpointer.setup()`。
     </Tip>
 
     <Tabs>
@@ -1549,9 +1549,9 @@ with PostgresStore.from_conn_string(DB_URI) as store:  # [!code highlight]
 </Accordion>
 :::
 
-### Use semantic search
+### 使用语义搜索
 
-Enable semantic search in your graph's memory store to let graph agents search for items in the store by semantic similarity.
+在你的 graph 的 memory store 中启用语义搜索, 让 graph 的 agent 能够按语义相似度搜索 store 中的条目。
 
 :::python
 ```python
@@ -1602,11 +1602,11 @@ const items = await store.search(["user_123", "memories"], {
 
 :::js
 <Tip>
-`InMemoryStore` is suitable for development. For production, use a persistent store like `PostgresStore`, `MongoDBStore`, or `RedisStore`.
+`InMemoryStore` 适合开发。在生产环境中, 请使用持久化的 store, 例如 `PostgresStore`、`MongoDBStore` 或 `RedisStore`。
 </Tip>
 :::
 
-<Accordion title="Long-term memory with semantic search">
+<Accordion title="带语义搜索的 long-term memory">
     :::python
 
     ```python
@@ -1720,7 +1720,7 @@ const items = await store.search(["user_123", "memories"], {
         }
         ```
       </Tab>
-      <Tab title="MongoDB (manual embedding)">
+      <Tab title="MongoDB (手动 embedding)">
         ```typescript
         import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
         import { MongoDBStore } from "@langchain/langgraph-checkpoint-mongodb";
@@ -1781,9 +1781,9 @@ const items = await store.search(["user_123", "memories"], {
         }
         ```
       </Tab>
-      <Tab title="MongoDB (auto embedding)">
+      <Tab title="MongoDB (自动 embedding)">
         <Note>
-        Auto embedding requires MongoDB Atlas. MongoDB generates embeddings server-side via Voyage AI. See the [Automated Embedding documentation](https://www.mongodb.com/docs/atlas/atlas-vector-search/automated-embedding/) for more information.
+        自动 embedding 需要 MongoDB Atlas。MongoDB 通过 Voyage AI 在服务端生成 embedding。更多信息请参阅 [Automated Embedding 文档](https://www.mongodb.com/docs/atlas/atlas-vector-search/automated-embedding/)。
         </Note>
 
         ```typescript
@@ -1851,29 +1851,29 @@ const items = await store.search(["user_123", "memories"], {
     :::
 </Accordion>
 
-## Manage short-term memory
+## 管理 short-term memory
 
-With [short-term memory](#add-short-term-memory) enabled, long conversations can exceed the LLM's context window. Common solutions are:
+启用 [short-term memory](#add-short-term-memory) 后, 长对话可能会超出 LLM 的 context window。常见的解决方案有:
 
-* [Trim messages](#trim-messages): Remove first or last N messages (before calling LLM)
-* [Delete messages](#delete-messages) from LangGraph state permanently
-* [Summarize messages](#summarize-messages): Summarize earlier messages in the history and replace them with a summary
-* [Manage checkpoints](#manage-checkpoints) to store and retrieve message history
-* Custom strategies (e.g., message filtering, etc.)
+* [裁剪消息](#trim-messages): 移除最前或最后的 N 条消息 (在调用 LLM 之前)
+* 从 LangGraph state 中永久 [删除消息](#delete-messages)
+* [总结消息](#summarize-messages): 对历史中较早的消息做总结, 并用一段摘要替换它们
+* [管理 checkpoints](#manage-checkpoints), 用于存储和检索消息历史
+* 自定义策略 (例如消息过滤等)
 
-This allows the agent to keep track of the conversation without exceeding the LLM's context window.
+这样可以让 agent 在不超过 LLM context window 的前提下跟踪对话。
 
-### Trim messages
+### 裁剪消息
 
 :::python
-Most LLMs have a maximum supported context window (denominated in tokens). One way to decide when to truncate messages is to count the tokens in the message history and truncate whenever it approaches that limit. If you're using LangChain, you can use the trim messages utility and specify the number of tokens to keep from the list, as well as the `strategy` (e.g., keep the last `max_tokens`) to use for handling the boundary.
+大多数 LLM 都有一个最大支持的 context window (以 tokens 计)。决定何时截断消息的一种方式是: 统计消息历史中的 tokens 数, 一旦接近该上限就截断。如果你使用 LangChain, 可以使用 trim messages 工具, 指定列表中要保留的 tokens 数, 以及用于处理边界的 `strategy` (例如保留最后的 `max_tokens`)。
 :::
 :::js
-Most LLMs have a maximum supported context window (denominated in tokens). One way to decide when to truncate messages is to count the tokens in the message history and truncate whenever it approaches that limit. If you're using LangChain, you can use the trim messages utility and specify the number of tokens to keep from the list, as well as the `strategy` (e.g., keep the last `maxTokens`) to use for handling the boundary.
+大多数 LLM 都有一个最大支持的 context window (以 tokens 计)。决定何时截断消息的一种方式是: 统计消息历史中的 tokens 数, 一旦接近该上限就截断。如果你使用 LangChain, 可以使用 trim messages 工具, 指定列表中要保留的 tokens 数, 以及用于处理边界的 `strategy` (例如保留最后的 `maxTokens`)。
 :::
 
 :::python
-To trim message history, use the [`trim_messages`](https://reference.langchain.com/python/langchain-core/messages/utils/trim_messages) function:
+要裁剪消息历史, 请使用 [`trim_messages`](https://reference.langchain.com/python/langchain-core/messages/utils/trim_messages) 函数:
 
 ```python
 from langchain_core.messages.utils import (  # [!code highlight]
@@ -1900,7 +1900,7 @@ builder.add_node(call_model)
 :::
 
 :::js
-To trim message history, use the [`trimMessages`](https://js.langchain.com/docs/how_to/trim_messages/) function:
+要裁剪消息历史, 请使用 [`trimMessages`](https://js.langchain.com/docs/how_to/trim_messages/) 函数:
 
 ```typescript
 import { trimMessages } from "@langchain/core/messages";
@@ -1927,7 +1927,7 @@ const builder = new StateGraph(State)
 ```
 :::
 
-<Accordion title="Full example: trim messages">
+<Accordion title="完整示例: 裁剪消息">
   :::python
   ```python
   from langchain_core.messages.utils import (
@@ -2019,14 +2019,14 @@ const builder = new StateGraph(State)
   :::
 </Accordion>
 
-### Delete messages
+### 删除消息
 
-You can delete messages from the graph state to manage the message history. This is useful when you want to remove specific messages or clear the entire message history.
+你可以从 graph state 中删除消息, 以管理消息历史。当你想要移除特定消息或清空整个消息历史时, 这会很有用。
 
 :::python
-To delete messages from the graph state, you can use the `RemoveMessage`. For `RemoveMessage` to work, you need to use a state key with @[`add_messages`] [reducer](/oss/langgraph/graph-api#reducers), like [`MessagesState`](/oss/langgraph/graph-api#messagesstate).
+要从 graph state 删除消息, 你可以使用 `RemoveMessage`。要让 `RemoveMessage` 生效, 你需要使用带有 @[`add_messages`] [reducer](/oss/langgraph/graph-api#reducers) 的 state key, 例如 [`MessagesState`](/oss/langgraph/graph-api#messagesstate)。
 
-To remove specific messages:
+要移除特定消息:
 
 ```python
 from langchain.messages import RemoveMessage  # [!code highlight]
@@ -2038,7 +2038,7 @@ def delete_messages(state):
         return {"messages": [RemoveMessage(id=m.id) for m in messages[:2]]}  # [!code highlight]
 ```
 
-To remove **all** messages:
+要移除 **全部** 消息:
 
 ```python
 from langgraph.graph.message import REMOVE_ALL_MESSAGES  # [!code highlight]
@@ -2049,9 +2049,9 @@ def delete_messages(state):
 :::
 
 :::js
-To delete messages from the graph state, you can use the `RemoveMessage`. For `RemoveMessage` to work, you need to use a state key with @[`messagesStateReducer`][messagesStateReducer] [reducer](/oss/langgraph/graph-api#reducers), like `MessagesValue`.
+要从 graph state 删除消息, 你可以使用 `RemoveMessage`。要让 `RemoveMessage` 生效, 你需要使用带有 @[`messagesStateReducer`][messagesStateReducer] [reducer](/oss/langgraph/graph-api#reducers) 的 state key, 例如 `MessagesValue`。
 
-To remove specific messages:
+要移除特定消息:
 
 ```typescript
 import { RemoveMessage } from "@langchain/core/messages";
@@ -2071,13 +2071,13 @@ const deleteMessages = (state) => {
 :::
 
 <Warning>
-When deleting messages, **make sure** that the resulting message history is valid. Check the limitations of the LLM provider you're using. For example:
+删除消息时, **请确保** 得到的消息历史是有效的。请检查你所使用的 LLM provider 的限制。例如:
 
-* Some providers expect message history to start with a `user` message
-* Most providers require `assistant` messages with tool calls to be followed by corresponding `tool` result messages.
+* 某些 provider 期望消息历史以一条 `user` 消息开头
+* 大多数 provider 要求带有 tool calls 的 `assistant` 消息后面跟着对应的 `tool` 结果消息。
 </Warning>
 
-<Accordion title="Full example: delete messages">
+<Accordion title="完整示例: 删除消息">
   :::python
   ```python
   from langchain.messages import RemoveMessage  # [!code highlight]
@@ -2190,15 +2190,15 @@ When deleting messages, **make sure** that the resulting message history is vali
   :::
 </Accordion>
 
-### Summarize messages
+### 总结消息
 
-The problem with trimming or removing messages, as shown above, is that you may lose information from culling of the message queue. Because of this, some applications benefit from a more sophisticated approach of summarizing the message history using a chat model.
+如上所示, 裁剪或删除消息的问题在于, 从消息队列中剔除内容可能会让你丢失信息。因此, 有些应用会受益于一种更精细的做法: 使用 chat model 对消息历史做总结。
 
 ![Summary](/oss/images/summary.png)
 
 
 :::python
-Prompting and orchestration logic can be used to summarize the message history. For example, in LangGraph you can extend the [`MessagesState`](/oss/langgraph/graph-api#working-with-messages-in-graph-state) to include a `summary` key:
+可以用 prompting 与编排逻辑来总结消息历史。例如, 在 LangGraph 中, 你可以扩展 [`MessagesState`](/oss/langgraph/graph-api#working-with-messages-in-graph-state), 加入一个 `summary` key:
 
 ```python
 from langgraph.graph import MessagesState
@@ -2206,7 +2206,7 @@ class State(MessagesState):
     summary: str
 ```
 
-Then, you can generate a summary of the chat history, using any existing summary as context for the next summary. This `summarize_conversation` node can be called after some number of messages have accumulated in the `messages` state key.
+然后, 你可以生成聊天历史的摘要, 并把已有的摘要用作下一次总结的上下文。当 `messages` state key 中累积了一定数量的消息后, 就可以调用这个 `summarize_conversation` node。
 
 ```python
 def summarize_conversation(state: State):
@@ -2237,7 +2237,7 @@ def summarize_conversation(state: State):
 :::
 
 :::js
-Prompting and orchestration logic can be used to summarize the message history. For example, in LangGraph you can include a `summary` key in the state alongside the `messages` key:
+可以用 prompting 与编排逻辑来总结消息历史。例如, 在 LangGraph 中, 你可以在 state 中与 `messages` key 并列加入一个 `summary` key:
 
 ```typescript
 import { StateSchema, MessagesValue, GraphNode } from "@langchain/langgraph";
@@ -2249,7 +2249,7 @@ const State = new StateSchema({
 });
 ```
 
-Then, you can generate a summary of the chat history, using any existing summary as context for the next summary. This `summarizeConversation` node can be called after some number of messages have accumulated in the `messages` state key.
+然后, 你可以生成聊天历史的摘要, 并把已有的摘要用作下一次总结的上下文。当 `messages` state key 中累积了一定数量的消息后, 就可以调用这个 `summarizeConversation` node。
 
 ```typescript
 import { RemoveMessage, HumanMessage } from "@langchain/core/messages";
@@ -2289,7 +2289,7 @@ const summarizeConversation: GraphNode<typeof State> = async (state) => {
 ```
 :::
 
-<Accordion title="Full example: summarize messages">
+<Accordion title="完整示例: 总结消息">
   :::python
   ```python
   from typing import Any, TypedDict
@@ -2342,15 +2342,15 @@ const summarizeConversation: GraphNode<typeof State> = async (state) => {
   print("\nSummary:", final_response["context"]["running_summary"].summary)
 ```
 
-  1. We will keep track of our running summary in the `context` field
+  1. 我们会在 `context` 字段中跟踪运行中的摘要
 
-  (expected by the `SummarizationNode`).
+  (由 `SummarizationNode` 预期)。
 
-  1. Define private state that will be used only for filtering
+  1. 定义一个私有 state, 只用于过滤
 
-  the inputs to `call_model` node.
+  传给 `call_model` node 的输入。
 
-  1. We're passing a private input state here to isolate the messages returned by the summarization node
+  1. 这里我们传入一个私有输入 state, 以隔离由 summarization node 返回的消息
 
   ```
   ================================== Ai Message ==================================
@@ -2479,12 +2479,12 @@ const summarizeConversation: GraphNode<typeof State> = async (state) => {
   :::
 </Accordion>
 
-### Manage checkpoints
+### 管理 checkpoints
 
-You can view and delete the information stored by the checkpointer.
+你可以查看并删除由 checkpointer 存储的信息。
 
 <a id="checkpoint"></a>
-#### View thread state
+#### 查看 thread state
 
 :::python
 <Tabs>
@@ -2593,7 +2593,7 @@ await graph.getState(config);
 :::
 
 <a id="checkpoints"></a>
-#### View the history of the thread
+#### 查看 thread 的历史
 
 :::python
 <Tabs>
@@ -2789,7 +2789,7 @@ for await (const state of graph.getStateHistory(config)) {
 ```
 :::
 
-#### Delete all checkpoints for a thread
+#### 删除某个 thread 的所有 checkpoints
 
 :::python
 ```python
@@ -2805,11 +2805,12 @@ await checkpointer.deleteThread(threadId);
 ```
 :::
 
-## Database management
+## 数据库管理
 
-If you are using any database-backed persistence implementation (such as Postgres, Redis, or Oracle) to store short and/or long-term memory, you will need to run migrations to set up the required schema before you can use it with your database.
+如果你使用任何由数据库支持的 persistence 实现 (例如 Postgres、Redis 或 Oracle) 来存储 short-term 和/或 long-term memory, 那么在将其与数据库一起使用之前, 你需要运行迁移来设置所需的 schema。
 
-By convention, most database-specific libraries define a `setup()` method on the checkpointer or store instance that runs the required migrations. However, you should check with your specific implementation of @[`BaseCheckpointSaver`] or @[`BaseStore`] to confirm the exact method name and usage.
+按照惯例, 大多数特定于数据库的库会在 checkpointer 或 store 实例上定义一个 `setup()` 方法, 用于运行所需的迁移。不过, 你应当查阅你所用 @[`BaseCheckpointSaver`] 或 @[`BaseStore`] 的具体实现, 以确认准确的方法名与用法。
 
-We recommend running migrations as a dedicated deployment step, or you can ensure they're run as part of server startup.
+我们建议把迁移作为专门的部署步骤来运行, 或者你也可以确保它们在服务器启动时运行。
 
+{/* 源文档版本: src/oss/langgraph/add-memory.mdx @ 85e88bff8 (2026-09-24) | 翻译日期: 2026-10-01 */}
