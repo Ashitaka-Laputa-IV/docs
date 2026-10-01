@@ -1,42 +1,42 @@
 ---
-title: Thinking in LangGraph
-description: Learn how to think about building agents with LangGraph
+title: 用 LangGraph 思考
+description: 了解如何用 LangGraph 的思路来构建 agent
 ---
 
 import LanggraphThinkingHitlV2Py from '/snippets/code-samples/langgraph-thinking-hitl-v2-py.mdx';
 
-When you build an agent with LangGraph, you will first break it apart into discrete steps called **nodes**. Then, you will describe the different decisions and transitions from each of your nodes. Finally, you connect nodes together through a shared **state** that each node can read from and write to.
+用 LangGraph 构建 agent 时, 你首先要把它拆分成一个个离散的步骤, 这些步骤称为 **node**。然后, 描述每个 node 可能做出的不同决策与跳转。最后, 通过一个共享的 **state** 把 nodes 连接起来, 每个 node 都可以读写这个 state。
 
-In this walkthrough, we'll guide you through the thought process of building a customer support email agent with LangGraph.
+在本篇实战讲解中, 我们会带你走一遍用 LangGraph 构建客服邮件 agent 的思考过程。
 
-## Start with the process you want to automate
+## 从你想自动化的流程开始
 
-Imagine that you need to build an AI agent that handles customer support emails. Your product team has given you these requirements:
+假设你需要构建一个处理客服邮件的 AI agent。产品团队给了你这些需求:
 
 ```txt
-The agent should:
+该 agent 应当:
 
-- Read incoming customer emails
-- Classify them by urgency and topic
-- Search relevant documentation to answer questions
-- Draft appropriate responses
-- Escalate complex issues to human agents
-- Schedule follow-ups when needed
+- 读取收到的客户邮件
+- 按紧急程度与主题进行分类
+- 检索相关文档以回答问题
+- 起草合适的回复
+- 把复杂问题升级给人工 agent
+- 在需要时安排后续跟进
 
-Example scenarios to handle:
+需要处理的示例场景:
 
-1. Simple product question: "How do I reset my password?"
-2. Bug report: "The export feature crashes when I select PDF format"
-3. Urgent billing issue: "I was charged twice for my subscription!"
-4. Feature request: "Can you add dark mode to the mobile app?"
-5. Complex technical issue: "Our API integration fails intermittently with 504 errors"
+1. 简单的产品问题: "How do I reset my password?"
+2. Bug 报告: "The export feature crashes when I select PDF format"
+3. 紧急账单问题: "I was charged twice for my subscription!"
+4. 功能请求: "Can you add dark mode to the mobile app?"
+5. 复杂技术问题: "Our API integration fails intermittently with 504 errors"
 ```
 
-To implement an agent in LangGraph, you will usually follow the same five steps.
+在 LangGraph 中实现 agent, 通常遵循相同的五个步骤。
 
 ## Step 1: Map out your workflow as discrete steps
 
-Start by identifying the distinct steps in your process. Each step will become a **node** (a function that does one specific thing). Then, sketch how these steps connect to each other.
+先识别流程中彼此独立的步骤。每个步骤都会成为一个 **node**(一个只做一件具体事情的函数)。然后画出这些步骤之间如何连接。
 
 ```mermaid
 flowchart TD
@@ -61,147 +61,147 @@ flowchart TD
     class A,B,C,D,E,F,G,H,I,J process
 ```
 
-The arrows in this diagram show possible paths, but the actual decision of which path to take happens inside each node.
+图中的箭头表示可能的路径, 但真正决定走哪条路径的逻辑发生在每个 node 内部。
 
-Now that we've identified the components in our workflow, let's understand what each node needs to do:
+现在我们已经识别出 workflow 中的各个组成部分, 接下来看看每个 node 需要做什么:
 
-- `Read Email`: Extract and parse the email content
-- `Classify Intent`: Use an LLM to categorize urgency and topic, then route to appropriate action
-- `Doc Search`: Query your knowledge base for relevant information
-- `Bug Track`: Create or update issue in tracking system
-- `Draft Reply`: Generate an appropriate response
-- `Human Review`: Escalate to human agent for approval or handling
-- `Send Reply`: Dispatch the email response
+- `Read Email`: 提取并解析邮件内容
+- `Classify Intent`: 用 LLM 对紧急程度与主题进行分类, 然后路由到相应操作
+- `Doc Search`: 在你的知识库中查询相关信息
+- `Bug Track`: 在跟踪系统中创建或更新 issue
+- `Draft Reply`: 生成合适的回复
+- `Human Review`: 升级给人工 agent 审批或处理
+- `Send Reply`: 发送邮件回复
 
 <Tip>
-Notice that some nodes make decisions about where to go next (`Classify Intent`, `Draft Reply`, `Human Review`), while others always proceed to the same next step (`Read Email` always goes to `Classify Intent`, `Doc Search` always goes to `Draft Reply`).
+注意, 有些 node 会决定接下来去哪里(`Classify Intent`、`Draft Reply`、`Human Review`), 而另一些 node 总是进入同一个下一步(`Read Email` 总是进入 `Classify Intent`, `Doc Search` 总是进入 `Draft Reply`)。
 </Tip>
 
 ## Step 2: Identify what each step needs to do
 
-For each node in your graph, determine what type of operation it represents and what context it needs to work properly.
+对 graph 中的每个 node, 判断它属于哪类操作, 以及它正常工作需要哪些上下文。
 
 <CardGroup cols={2}>
     <Card title="LLM steps" icon="brain" href="#llm-steps">
-        Use when you need to understand, analyze, generate text, or make reasoning decisions
+        当你需要理解、分析、生成文本或做出推理决策时使用
     </Card>
     <Card title="Data steps" icon="database" href="#data-steps">
-        Use when you need to retrieve information from external sources
+        当你需要从外部来源检索信息时使用
     </Card>
     <Card title="Action steps" icon="bolt" href="#action-steps">
-        Use when you need to perform external actions
+        当你需要执行外部操作时使用
     </Card>
     <Card title="User input steps" icon="user" href="#user-input-steps">
-        Use when you need human intervention
+        当你需要人工介入时使用
     </Card>
 </CardGroup>
 
 ### LLM steps
 
-When a step needs to understand, analyze, generate text, or make reasoning decisions:
+当一个步骤需要理解、分析、生成文本或做出推理决策时:
 
 <AccordionGroup>
     <Accordion title="Classify intent">
-        - Static context (prompt): Classification categories, urgency definitions, response format
-        - Dynamic context (from state): Email content, sender information
-        - Desired outcome: Structured classification that determines routing
+        - 静态上下文(prompt): 分类类别、紧急程度定义、响应格式
+        - 动态上下文(来自 state): 邮件内容、发件人信息
+        - 期望结果: 决定路由的结构化分类结果
     </Accordion>
 
     <Accordion title="Draft reply">
-        - Static context (prompt): Tone guidelines, company policies, response templates
-        - Dynamic context (from state): Classification results, search results, customer history
-        - Desired outcome: Professional email response ready for review
+        - 静态上下文(prompt): 语气准则、公司政策、响应模板
+        - 动态上下文(来自 state): 分类结果、搜索结果、客户历史
+        - 期望结果: 可供审阅的专业邮件回复
     </Accordion>
 </AccordionGroup>
 
 ### Data steps
 
-When a step needs to retrieve information from external sources:
+当一个步骤需要从外部来源检索信息时:
 
 <AccordionGroup>
     <Accordion title="Document search">
-        - Parameters: Query built from intent and topic
-        - Retry strategy: Yes, with exponential backoff for transient failures
-        - Caching: Could cache common queries to reduce API calls
+        - 参数: 由 intent 与 topic 构造的查询
+        - 重试策略: 是, 针对瞬时故障采用指数退避
+        - 缓存: 可以缓存常见查询, 以减少 API 调用
     </Accordion>
 
     <Accordion title="Customer history lookup">
-        - Parameters: Customer email or ID from state
-        - Retry strategy: Yes, but with fallback to basic info if unavailable
-        - Caching: Yes, with time-to-live to balance freshness and performance
+        - 参数: 来自 state 的客户邮箱或 ID
+        - 重试策略: 是, 但在数据不可用时回退到基本信息
+        - 缓存: 是, 设置 time-to-live 以平衡新鲜度与性能
     </Accordion>
 </AccordionGroup>
 
 ### Action steps
 
-When a step needs to perform an external action:
+当一个步骤需要执行外部操作时:
 
 <AccordionGroup>
     <Accordion title="Send reply">
-        - When to execute node: After approval (human or automated)
-        - Retry strategy: Yes, with exponential backoff for network issues
-        - Should not cache: Each send is a unique action
+        - node 执行时机: 获得批准之后(人工或自动)
+        - 重试策略: 是, 针对网络问题采用指数退避
+        - 不应缓存: 每次发送都是唯一的操作
     </Accordion>
 
     <Accordion title="Bug track">
-        - When to execute node: Always when intent is "bug"
-        - Retry strategy: Yes, critical to not lose bug reports
-        - Returns: Ticket ID to include in response
+        - node 执行时机: 当 intent 为 "bug" 时总是执行
+        - 重试策略: 是, 不能丢失 bug 报告, 这一点至关重要
+        - 返回值: 需要包含在回复中的工单 ID
     </Accordion>
 </AccordionGroup>
 
 ### User input steps
 
-When a step needs human intervention:
+当一个步骤需要人工介入时:
 
 <AccordionGroup>
     <Accordion title="Human review node">
-        - Context for decision: Original email, draft response, urgency, classification
-        - Expected input format: Approval boolean plus optional edited response
-        - When triggered: High urgency, complex issues, or quality concerns
+        - 决策所需上下文: 原始邮件、回复草稿、紧急程度、分类结果
+        - 期望的输入格式: 审批布尔值, 以及可选的修改后回复
+        - 触发时机: 高紧急程度、复杂问题或质量隐患
     </Accordion>
 </AccordionGroup>
 
 ## Step 3: Design your state
 
-State is the shared [memory](/oss/concepts/memory) accessible to all nodes in your agent. Think of it as the notebook your agent uses to keep track of everything it learns and decides as it works through the process.
+state 是你的 agent 中所有 nodes 都能访问的共享 [memory](/oss/concepts/memory)。可以把它想象成 agent 的笔记本, 用来记录它在处理流程中了解到和决定的一切。
 
-### What belongs in state?
+### state 里应该放什么?
 
-Ask yourself these questions about each piece of data:
+对每一条数据, 问自己这些问题:
 
 <CardGroup cols={2}>
-    <Card title="Include in state" icon="check">
-        Does it need to persist across steps? If yes, it goes in state.
+    <Card title="放入 state" icon="check">
+        它需要跨步骤持续存在吗? 如果是, 就放进 state。
     </Card>
 
-    <Card title="Don't store" icon="code">
-        Can you derive it from other data? If yes, compute it when needed instead of storing it in state.
+    <Card title="不要存储" icon="code">
+        你能从其他数据推导出它吗? 如果可以, 就在需要时计算, 而不是把它存进 state。
     </Card>
 </CardGroup>
 
-For our email agent, we need to track:
+对于我们的 email agent, 需要跟踪:
 
-- The original email and sender info (can't reconstruct these later)
-- Classification results (needed by multiple later/downstream nodes)
-- Search results and customer data (expensive to re-fetch)
-- The draft response (needs to persist through review)
-- Execution metadata (for debugging and recovery)
+- 原始邮件与发件人信息(之后无法重建)
+- 分类结果(多个后续/下游 node 都需要)
+- 搜索结果与客户数据(重新获取代价高)
+- 回复草稿(需要在审阅过程中保留)
+- 执行元数据(用于调试与恢复)
 
-### Keep state raw, format prompts on-demand
+### 让 state 保持原始, 按需格式化 prompt
 
 <Tip>
-    A key principle: your state should store raw data, not formatted text. Format prompts inside nodes when you need them.
+    一条关键原则: state 应存储原始数据, 而不是格式化后的文本。在 node 内部需要用到 prompt 时, 再进行格式化。
 </Tip>
 
-This separation means:
+这种分离意味着:
 
-- Different nodes can format the same data differently for their needs
-- You can change prompt templates without modifying your state schema
-- Debugging is clearer—you see exactly what data each node received
-- Your agent can evolve without breaking existing state
+- 不同 node 可以根据自身需要, 以不同方式格式化同一份数据
+- 你可以修改 prompt 模板, 而无需改动 state schema
+- 调试更清晰: 你能准确看到每个 node 收到了什么数据
+- agent 可以持续演进, 而不会破坏已有的 state
 
-Let's define our state:
+我们来定义 state:
 
 :::python
 
@@ -272,41 +272,41 @@ type EmailClassificationType = z.infer<typeof EmailClassificationSchema>;
 :::
 
 
-Notice that the state contains only raw data—no prompt templates, no formatted strings, no instructions. The classification output is stored as a single dictionary, straight from the LLM.
+注意, state 中只包含原始数据: 没有 prompt 模板, 没有格式化字符串, 也没有指令。分类输出以一个字典的形式直接来自 LLM, 并原样存入 state。
 
 ## Step 4: Build your nodes
 
 :::python
 
-Now we implement each step as a function. A node in LangGraph is just a Python function that takes the current state and returns updates to it.
+现在我们用函数来实现每个步骤。LangGraph 中的 node 就是一个接收当前 state 并返回 state 更新的 Python 函数。
 
 :::
 
 :::js
 
-Now we implement each step as a function. A node in LangGraph is just a JavaScript function that takes the current state and returns updates to it.
+现在我们用函数来实现每个步骤。LangGraph 中的 node 就是一个接收当前 state 并返回 state 更新的 JavaScript 函数。
 
 :::
 
 ### Handle errors appropriately
 
-Different errors need different handling strategies:
+不同类型的错误需要不同的处理策略:
 
-| Error Type | Who Fixes It | Strategy | When to Use |
+| 错误类型 | 谁来修复 | 策略 | 使用场景 |
 |------------|--------------|----------|-------------|
-| Transient errors (network issues, rate limits) | System (automatic) | Retry policy | Temporary failures that usually resolve on retry |
-| LLM-recoverable errors (tool failures, parsing issues) | LLM | Store error in state and loop back | LLM can see the error and adjust its approach |
-| User-fixable errors (missing information, unclear instructions) | Human | Pause with `interrupt()` | Need user input to proceed |
-| Recoverable failure after retries | Developer (declarative) | `error_handler` | Run a compensation/recovery branch after retry exhaustion |
-| Unexpected errors | Developer | Let them bubble up | Unknown issues that need debugging |
+| 瞬时错误(网络问题、速率限制) | 系统(自动) | 重试策略 | 通常在重试后就能解决的临时故障 |
+| LLM 可恢复的错误(tool 失败、解析问题) | LLM | 把错误存入 state 并回环 | LLM 能看到错误并调整做法 |
+| 用户可修复的错误(信息缺失、指令不清) | 人工 | 用 `interrupt()` 暂停 | 需要用户输入才能继续 |
+| 重试后仍可恢复的失败 | 开发者(声明式) | `error_handler` | 重试耗尽后运行补偿/恢复分支 |
+| 意料之外的错误 | 开发者 | 让其向上抛出 | 需要调试的未知问题 |
 
 <Tabs>
-    <Tab title="Transient errors" icon="rotate">
-        Add a retry policy to automatically retry network issues and rate limits.
+    <Tab title="瞬时错误" icon="rotate">
+        添加重试策略, 自动重试网络问题与速率限制。
 
     :::python
 
-    Combine with `timeout=` to cap each attempt. See [Fault tolerance](/oss/langgraph/fault-tolerance) for the full lifecycle.
+    可与 `timeout=` 配合, 为每次尝试设置上限。完整生命周期请参阅 [容错](/oss/langgraph/fault-tolerance)。
 
     ```python
     from langgraph.types import RetryPolicy
@@ -338,8 +338,8 @@ Different errors need different handling strategies:
 
     </Tab>
 
-    <Tab title="LLM-recoverable" icon="brain">
-        Store the error in state and loop back so the LLM can see what went wrong and try again:
+    <Tab title="LLM 可恢复" icon="brain">
+        把错误存入 state 并回环, 让 LLM 看到问题所在并重试:
 
     :::python
 
@@ -387,8 +387,8 @@ Different errors need different handling strategies:
 
     </Tab>
 
-    <Tab title="User-fixable" icon="user">
-        Pause and collect information from the user when needed (like account IDs, order numbers, or clarifications):
+    <Tab title="用户可修复" icon="user">
+        在需要时暂停并向用户收集信息(例如账号 ID、订单号或补充说明):
 
     :::python
 
@@ -444,8 +444,8 @@ Different errors need different handling strategies:
 
     </Tab>
 
-    <Tab title="Unexpected" icon="alert-triangle">
-        Let them bubble up for debugging. Don't catch what you can't handle:
+    <Tab title="意料之外" icon="alert-triangle">
+        让它们向上抛出以便调试。不要捕获你处理不了的错误:
 
     :::python
 
@@ -477,15 +477,15 @@ Different errors need different handling strategies:
 
     </Tab>
 
-    <Tab title="Saga / compensation" icon="arrows-exchange">
-        After retries are exhausted, run a recovery function that updates state and routes to a compensation branch.
+    <Tab title="Saga / 补偿" icon="arrows-exchange">
+        在重试耗尽之后, 运行一个恢复函数, 更新 state 并路由到补偿分支。
 
     :::python
 
-    See [Fault tolerance](/oss/langgraph/fault-tolerance#error-handling) for the full pattern.
+    完整模式请参阅 [容错](/oss/langgraph/fault-tolerance#error-handling)。
 
     <Note>
-    `error_handler` requires `langgraph>=1.2`.
+    `error_handler` 需要 `langgraph>=1.2`。
     </Note>
 
     ```python
@@ -506,7 +506,7 @@ Different errors need different handling strategies:
     )
     ```
 
-    To apply the same `retry_policy`, `timeout`, or `error_handler` to every node in a graph without repeating them on each `add_node`, use `StateGraph.set_node_defaults(...)`. Per-node values still take precedence. See [Fault tolerance](/oss/langgraph/fault-tolerance#graph-defaults).
+    如果想把相同的 `retry_policy`、`timeout` 或 `error_handler` 应用到 graph 中的每个 node, 而不必在每个 `add_node` 上重复书写, 可以使用 `StateGraph.set_node_defaults(...)`。单个 node 上的取值仍然优先。请参阅 [容错](/oss/langgraph/fault-tolerance#graph-defaults)。
 
     :::
 
@@ -514,12 +514,12 @@ Different errors need different handling strategies:
 </Tabs>
 
 
-### Implementing our email agent nodes
+### 实现我们的 email agent nodes
 
-We'll implement each node as a simple function. Remember: nodes take state, do work, and return updates.
+我们会把每个 node 实现为一个简单的函数。记住: node 接收 state, 完成工作, 然后返回更新。
 
 <AccordionGroup>
-    <Accordion title="Read and classify nodes" icon="brain">
+    <Accordion title="邮件读取与分类 nodes" icon="brain">
 
     :::python
 
@@ -637,7 +637,7 @@ We'll implement each node as a simple function. Remember: nodes take state, do w
 
     </Accordion>
 
-    <Accordion title="Search and tracking nodes" icon="database">
+    <Accordion title="搜索与跟踪 nodes" icon="database">
 
     :::python
 
@@ -731,7 +731,7 @@ We'll implement each node as a simple function. Remember: nodes take state, do w
     :::
     </Accordion>
 
-    <Accordion title="Response nodes" icon="edit">
+    <Accordion title="回复 nodes" icon="edit">
 
     :::python
 
@@ -918,11 +918,11 @@ We'll implement each node as a simple function. Remember: nodes take state, do w
 
 ## Step 5: Wire it together
 
-Now we connect our nodes into a working graph. Since our nodes handle their own routing decisions, we only need a few essential edges.
+现在我们把各个 node 连接成一个可运行的 graph。由于 nodes 自己负责路由决策, 我们只需要少量必要的 edges。
 
-To enable [human-in-the-loop](/oss/langgraph/interrupts) with `interrupt()`, we need to compile with a [checkpointer](/oss/langgraph/persistence) to save state between runs:
+要让 `interrupt()` 支持 [human-in-the-loop](/oss/langgraph/interrupts), 我们需要在编译时传入 [checkpointer](/oss/langgraph/persistence), 以便在多次运行之间保存 state:
 
-<Accordion title="Graph compilation code" icon="sitemap" defaultOpen={true}>
+<Accordion title="Graph 编译代码" icon="sitemap" defaultOpen={true}>
 
 :::python
 
@@ -994,18 +994,18 @@ const app = workflow.compile({ checkpointer: memory });
 </Accordion>
 
 :::python
-The graph structure is minimal because routing happens inside nodes through @[`Command`] objects. Each node declares where it can go using type hints like `Command[Literal["node1", "node2"]]`, making the flow explicit and traceable.
+graph 结构之所以精简, 是因为路由是通过 @[`Command`] 对象在 nodes 内部完成的。每个 node 都用 `Command[Literal["node1", "node2"]]` 这样的类型标注声明它可以去哪里, 使流程显式且可追踪。
 :::
 
 :::js
-The graph structure is minimal because routing happens inside nodes through `Command` objects. Each node declares where it can go, making the flow explicit and traceable.
+graph 结构之所以精简, 是因为路由是通过 `Command` 对象在 nodes 内部完成的。每个 node 都声明了它可以去哪里, 使流程显式且可追踪。
 :::
 
-### Try out your agent
+### 试用你的 agent
 
-Let's run our agent with an urgent billing issue that needs human review:
+我们用一个需要人工审阅的紧急账单问题来运行 agent:
 
-<Accordion title="Testing the agent" icon="flask">
+<Accordion title="测试 agent" icon="flask">
 
 :::python
 
@@ -1049,98 +1049,100 @@ console.log("Email sent successfully!");
 
 </Accordion>
 
-The graph pauses when it hits `interrupt()`, saves everything to the checkpointer, and waits. It can resume days later, picking up exactly where it left off. The `thread_id` ensures all state for this conversation is preserved together.
+当 graph 遇到 `interrupt()` 时会暂停, 把所有内容保存到 checkpointer, 然后等待。它可以在几天后恢复, 从中断处精确地继续。`thread_id` 确保这段会话的所有 state 都保存在一起。
 
-## Summary and next steps
+## 总结与后续步骤
 
-### Key Insights
+### 关键要点
 
-Building this email agent has shown us the LangGraph way of thinking:
+构建这个 email agent 的过程展示了 LangGraph 的思维方式:
 
 <CardGroup cols={2}>
-    <Card title="Break into discrete steps" icon="sitemap" href="#step-1-map-out-your-workflow-as-discrete-steps">
-        Each node does one thing well. This decomposition enables streaming progress updates, durable execution that can pause and resume, and clear debugging since you can inspect state between steps.
+    <Card title="拆分为离散步骤" icon="sitemap" href="#step-1-map-out-your-workflow-as-discrete-steps">
+        每个 node 只做好一件事。这种拆分让 streaming 进度更新、可暂停与恢复的 durable execution, 以及清晰的调试(你可以在步骤之间检查 state)成为可能。
     </Card>
 
-    <Card title="State is shared memory" icon="database" href="#step-3-design-your-state">
-        Store raw data, not formatted text. This lets different nodes use the same information in different ways.
+    <Card title="state 是共享 memory" icon="database" href="#step-3-design-your-state">
+        存储原始数据, 而不是格式化后的文本。这样不同的 node 就能以不同方式使用同一份信息。
     </Card>
 
-    <Card title="Nodes are functions" icon="code" href="#step-4-build-your-nodes">
-        They take state, do work, and return updates. When they need to make routing decisions, they specify both the state updates and the next destination.
+    <Card title="nodes 就是函数" icon="code" href="#step-4-build-your-nodes">
+        它们接收 state, 完成工作, 返回更新。当需要做路由决策时, 它们同时指定 state 更新与下一个目标。
     </Card>
 
-    <Card title="Errors are part of the flow" icon="alert-triangle" href="#handle-errors-appropriately">
-        Transient failures get retries, LLM-recoverable errors loop back with context, user-fixable problems pause for input, and unexpected errors bubble up for debugging.
+    <Card title="错误是流程的一部分" icon="alert-triangle" href="#handle-errors-appropriately">
+        瞬时故障会重试, LLM 可恢复的错误会带上下文回环, 用户可修复的问题会暂停等待输入, 意料之外的错误会向上抛出以便调试。
     </Card>
 
-    <Card title="Human input is first-class" icon="user" href="/oss/langgraph/interrupts">
-        The `interrupt()` function pauses execution indefinitely, saves all state, and resumes exactly where it left off when you provide input. When combined with other operations in a node, it must come first.
+    <Card title="人工输入是一等公民" icon="user" href="/oss/langgraph/interrupts">
+        `interrupt()` 函数会无限期暂停执行、保存所有 state, 并在你提供输入后从中断处精确恢复。当它与 node 中的其他操作同时存在时, 它必须放在最前面。
     </Card>
 
-    <Card title="Graph structure emerges naturally" icon="sitemap" href="#step-5-wire-it-together">
-        You define the essential connections, and your nodes handle their own routing logic. This keeps control flow explicit and traceable - you can always understand what your agent will do next by looking at the current node.
+    <Card title="graph 结构自然浮现" icon="sitemap" href="#step-5-wire-it-together">
+        你只需定义必要的连接, nodes 自行处理路由逻辑。这使控制流保持显式且可追踪: 只要看当前 node, 你总能明白 agent 接下来要做什么。
     </Card>
 </CardGroup>
 
-### Advanced considerations
+### 进阶考量
 
-<Accordion title="Node granularity trade-offs" icon="adjustments">
+<Accordion title="node 粒度上的取舍" icon="adjustments">
 <Info>
-This section explores the trade-offs in node granularity design. Most applications can skip this and use the patterns shown above.
+本节讨论 node 粒度设计中的取舍。大多数应用可以跳过本节, 直接使用上文展示的模式。
 </Info>
 
-You might wonder: why not combine `Read Email` and `Classify Intent` into one node?
+你可能会想: 为什么不把 `Read Email` 与 `Classify Intent` 合并成一个 node?
 
-Or why separate Doc Search from Draft Reply?
+或者为什么要把 Doc Search 与 Draft Reply 分开?
 
-The answer involves trade-offs between resilience and observability.
+答案涉及韧性(容错)与可观测性之间的取舍。
 
-**The resilience consideration:** LangGraph's [persistence layer](/oss/langgraph/persistence) creates checkpoints at node boundaries. When a workflow resumes after an interruption or failure, it starts from the beginning of the node where execution stopped. Smaller nodes mean more frequent checkpoints, which means less work to repeat if something goes wrong. If you combine multiple operations into one large node, a failure near the end means re-executing everything from the start of that node.
+**韧性的考量:** LangGraph 的 [persistence layer](/oss/langgraph/persistence) 会在 node 边界处创建 checkpoints。当 workflow 在中断或失败后恢复时, 会从执行停止的那个 node 的开头重新开始。node 越小, checkpoints 越频繁, 出错时需要重复的工作就越少。如果你把多个操作合并成一个大 node, 那么失败发生在接近末尾时, 就意味着要从该 node 的开头重新执行所有内容。
 
-Why we chose this breakdown for the email agent:
+我们为什么为这个 email agent 选择这样的拆分:
 
-- **Isolation of external services:** Doc Search and Bug Track are separate nodes because they call external APIs. If the search service is slow or fails, we want to isolate that from the LLM calls. We can add retry policies to these specific nodes without affecting others.
+- **隔离外部服务:** Doc Search 与 Bug Track 是独立的 nodes, 因为它们要调用外部 API。如果搜索服务变慢或失败, 我们希望把它与 LLM 调用隔离开。我们可以只给这些特定的 node 加重试策略, 而不影响其他 node。
 
-- **Intermediate visibility:** Having `Classify Intent` as its own node lets us inspect what the LLM decided before taking action. This is valuable for debugging and monitoring—you can see exactly when and why the agent routes to human review.
+- **中间过程可见:** 把 `Classify Intent` 作为独立 node, 让我们能在采取行动之前检查 LLM 的判定结果。这对调试和监控很有价值: 你能准确看到 agent 何时、因何路由到人工审阅。
 
-- **Different failure modes:** LLM calls, database lookups, and email sending have different retry strategies. Separate nodes let you configure these independently.
+- **不同的失败模式:** LLM 调用、数据库查询与邮件发送有不同的重试策略。拆成独立 node, 你就能分别配置它们。
 
-- **Reusability and testing:** Smaller nodes are easier to test in isolation and reuse in other workflows.
+- **可复用性与测试:** 更小的 node 更容易单独测试, 也更容易在其他 workflows 中复用。
 
-A different valid approach: You could combine `Read Email` and `Classify Intent` into a single node. You'd lose the ability to inspect the raw email before classification and would repeat both operations on any failure in that node. For most applications, the observability and debugging benefits of separate nodes are worth the trade-off.
+另一种同样可行的做法: 你也可以把 `Read Email` 与 `Classify Intent` 合并成一个 node。这样会失去在分类之前检查原始邮件的能力, 而且该 node 一旦失败, 两个操作都要重做。对大多数应用来说, 拆分带来的可观测性与调试收益值得这点取舍。
 
-Application-level concerns: The caching discussion in Step 2 (whether to cache search results) is an application-level decision, not a LangGraph framework feature. You implement caching within your node functions based on your specific requirements—LangGraph doesn't prescribe this.
+应用层面的问题: Step 2 中关于缓存的讨论(是否缓存搜索结果)属于应用级决策, 而不是 LangGraph framework 的特性。你需要根据自己的具体需求在 node 函数内部实现缓存, LangGraph 并不规定这一点。
 
-Performance considerations: More nodes doesn't mean slower execution. LangGraph writes checkpoints in the background by default ([async durability mode](/oss/langgraph/checkpointers#durability-modes)), so your graph continues running without waiting for checkpoints to complete. This means you get frequent checkpoints with minimal performance impact. You can adjust this behavior if needed—use `"exit"` mode to checkpoint only at completion, or `"sync"` mode to block execution until each checkpoint is written.
+性能方面的考量: node 更多并不意味着执行更慢。LangGraph 默认在后台写入 checkpoints([async durability mode](/oss/langgraph/checkpointers#durability-modes)), 因此 graph 会继续运行, 不必等待 checkpoints 写完。这意味着你可以获得频繁的 checkpoints, 而性能影响很小。如有需要可以调整这一行为: 使用 `"exit"` 模式只在完成时写入 checkpoint, 或使用 `"sync"` 模式在每次 checkpoint 写入完成前阻塞执行。
 </Accordion>
 
-### Where to go from here
+### 接下来去哪里
 
-This was an introduction to thinking about building agents with LangGraph. You can extend this foundation with:
+以上就是用 LangGraph 构建 agent 的思维方式的入门介绍。你可以在这个基础上继续扩展:
 
 <CardGroup cols={2}>
-    <Card title="Human-in-the-loop patterns" icon="user-check" href="/oss/langgraph/interrupts">
-        Learn how to add tool approval before execution, batch approval, and other patterns
+    <Card title="Human-in-the-loop 模式" icon="user-check" href="/oss/langgraph/interrupts">
+        了解如何在执行前加入 tool 审批、批量审批以及其他模式
     </Card>
 
-    <Card title="Subgraphs" icon="hierarchy" href="/oss/langgraph/use-subgraphs">
-        Create subgraphs for complex multi-step operations
+    <Card title="Subgraph" icon="hierarchy" href="/oss/langgraph/use-subgraphs">
+        为复杂的多步骤操作创建 subgraphs
     </Card>
 
     <Card title="Streaming" icon="broadcast" href="/oss/langgraph/streaming">
-        Add streaming to show real-time progress to users
+        加入 streaming, 向用户展示实时进度
     </Card>
 
-    <Card title="Observability" icon="chart-line" href="/oss/langgraph/observability">
-        Add observability with LangSmith for debugging and monitoring
+    <Card title="可观测性" icon="chart-line" href="/oss/langgraph/observability">
+        借助 LangSmith 添加可观测性, 用于调试与监控
     </Card>
 
-    <Card title="Tool Integration" icon="tool" href="/oss/langchain/tools">
-        Integrate more tools for web search, database queries, and API calls
+    <Card title="Tool 集成" icon="tool" href="/oss/langchain/tools">
+        集成更多 tools, 用于网络搜索、数据库查询与 API 调用
     </Card>
 
-    <Card title="Retry Logic" icon="rotate" href="/oss/langgraph/use-graph-api#add-retry-policies">
-        Implement retry logic with exponential backoff for failed operations
+    <Card title="重试逻辑" icon="rotate" href="/oss/langgraph/use-graph-api#add-retry-policies">
+        为失败的操作实现带指数退避的重试逻辑
     </Card>
 </CardGroup>
+
+{/* 源文档版本: src/oss/langgraph/thinking-in-langgraph.mdx | 翻译日期: 2026-10-01 */}

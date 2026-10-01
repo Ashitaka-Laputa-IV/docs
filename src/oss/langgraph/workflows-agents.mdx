@@ -1,35 +1,35 @@
 ---
-title: Workflows and agents
-sidebarTitle: Workflows + agents
+title: Workflow 与 agent
+sidebarTitle: Workflow + agent
 ---
 
 import WorkflowsAgentsToolRuntimeStateContextPy from "/snippets/code-samples/workflows-agents-tool-runtime-state-context-py.mdx";
 import WorkflowsAgentsToolRuntimeStateContextJs from "/snippets/code-samples/workflows-agents-tool-runtime-state-context-js.mdx";
 
-This guide reviews common workflow and agent patterns.
+本指南梳理常见的 workflow 与 agent 模式。
 
-- Workflows have predetermined code paths and are designed to operate in a certain order.
-- Agents are dynamic and define their own processes and tool usage.
+- Workflow 的代码路径是预先确定的, 并按特定顺序运行。
+- Agent 是动态的, 它们自行决定流程与 tool 的使用方式。
 
 ![Agent Workflow](/oss/images/agent_workflow.png)
 
-LangGraph offers several benefits when building agents and workflows, including [persistence](/oss/langgraph/persistence), [streaming](/oss/langgraph/streaming), and support for debugging as well as [deployment](/oss/langgraph/deploy).
+在构建 agents 与 workflows 时, LangGraph 提供了多项优势, 包括 [persistence](/oss/langgraph/persistence)、[streaming](/oss/langgraph/streaming), 以及对调试与 [部署](/oss/langgraph/deploy) 的支持。
 
 <Tip>
-Trace and compare these workflow patterns with [LangSmith](https://smith.langchain.com). Follow the [tracing quickstart](/langsmith/trace-with-langgraph) to see how data flows through each step. We recommend you also set up [LangSmith Engine](/langsmith/engine) which monitors your traces, detects issues, and proposes fixes.
+使用 [LangSmith](https://smith.langchain.com) 追踪并对比这些 workflow 模式。按照 [追踪快速入门](/langsmith/trace-with-langgraph) 查看数据如何在每个步骤间流动。我们还建议你同时配置 [LangSmith Engine](/langsmith/engine), 它会监控你的 trace、检测问题并提出修复方案。
 </Tip>
 
-## Setup
+## 环境准备
 
-To build a workflow or agent, you can use [any chat model](/oss/integrations/chat) that supports structured outputs and tool calling. The following example uses Anthropic:
+构建 workflow 或 agent 时, 你可以使用[任何支持结构化输出与 tool calling 的 chat model](/oss/integrations/chat)。下面的示例使用 Anthropic:
 
 :::python
-1. Install dependencies:
+1. 安装依赖:
 ```bash
 pip install langchain_core langchain-anthropic langgraph
 ```
 
-2. Initialize the LLM:
+2. 初始化 LLM:
 
 ```python
 import os
@@ -49,7 +49,7 @@ llm = ChatAnthropic(model="claude-sonnet-4-6")
 :::
 
 :::js
-1. Install dependencies
+1. 安装依赖
 <CodeGroup>
 ```bash npm
 npm install @langchain/langgraph @langchain/core
@@ -68,7 +68,7 @@ bun add @langchain/langgraph @langchain/core
 ```
 </CodeGroup>
 
-2. Initialize the LLM:
+2. 初始化 LLM:
 
 ```typescript
 import { ChatAnthropic } from "@langchain/anthropic";
@@ -80,9 +80,9 @@ const llm = new ChatAnthropic({
 ```
 :::
 
-## LLMs and augmentations
+## LLM 与增强
 
-Workflows and agentic systems are based on LLMs and the various augmentations you add to them. [Tool calling](/oss/langchain/tools), [structured outputs](/oss/langchain/structured-output), and [short term memory](/oss/langchain/short-term-memory) are a few options for tailoring LLMs to your needs.
+Workflows 与 agentic 系统都以 LLM 以及你为其添加的各种增强能力为基础。[Tool calling](/oss/langchain/tools)、[structured outputs](/oss/langchain/structured-output) 与 [short term memory](/oss/langchain/short-term-memory) 只是按需定制 LLM 的几种可选手段。
 
 ![LLM augmentations](/oss/images/augmented_llm.png)
 
@@ -170,10 +170,10 @@ console.log(msg.tool_calls);
 
 ## Prompt chaining
 
-Prompt chaining is when each LLM call processes the output of the previous call. It's often used for performing well-defined tasks that can be broken down into smaller, verifiable steps. Some examples include:
+Prompt chaining 指的是每一次 LLM 调用都处理上一次调用的输出。它常用于执行那些可以拆解成更小、可验证步骤的明确定义的任务。示例如下:
 
-- Translating documents into different languages
-- Verifying generated content for consistency
+- 把文档翻译成不同语言
+- 校验生成内容的一致性
 
 ![Prompt chaining](/oss/images/prompt_chain.png)
 
@@ -450,15 +450,15 @@ for await (const snapshot of stream.values) {
 
 ## Parallelization
 
-With parallelization, LLMs work simultaneously on a task. This is either done by running multiple independent subtasks at the same time, or running the same task multiple times to check for different outputs. Parallelization is commonly used to:
+使用并行化时, 多个 LLM 同时处理一项任务。这既可以是同时运行多个彼此独立的子任务, 也可以是重复运行同一个任务以检查不同输出。并行化常用于:
 
-- Split up subtasks and run them in parallel, which increases speed
-- Run tasks multiple times to check for different outputs, which increases confidence
+- 拆分并并行运行子任务, 从而提升速度
+- 多次运行任务以检查不同输出, 从而提升置信度
 
-Some examples include:
+示例如下:
 
-- Running one subtask that processes a document for keywords, and a second subtask to check for formatting errors
-- Running a task multiple times that scores a document for accuracy based on different criteria, like the number of citations, the number of sources used, and the quality of the sources
+- 一个子任务从文档中提取关键词, 另一个子任务检查格式错误
+- 多次运行同一个任务, 依据不同标准(例如引用数量、使用的来源数量、来源质量)对文档的准确性打分
 
 ![parallelization.png](/oss/images/parallelization.png)
 
@@ -706,9 +706,9 @@ for await (const snapshot of stream.values) {
 </CodeGroup>
 :::
 
-## Routing
+## 路由
 
-Routing workflows process inputs and then directs them to context-specific tasks. This allows you to define specialized flows for complex tasks. For example, a workflow built to answer product related questions might process the type of question first, and then route the request to specific processes for pricing, refunds, returns, etc.
+路由型 workflow 先处理输入, 再把它们引导到与具体上下文相关的任务上。这样你就能为复杂任务定义专门的流程。例如, 一个用于回答产品相关问题的 workflow 可以先判断问题类型, 再把请求路由到定价、退款、退货等各自的处理流程。
 
 ![routing.png](/oss/images/routing.png)
 
@@ -1102,15 +1102,15 @@ for await (const snapshot of stream.values) {
 
 ## Orchestrator-worker
 
-In an orchestrator-worker configuration, the orchestrator:
+在 orchestrator-worker 配置中, orchestrator 会:
 
-- Breaks down tasks into subtasks
-- Delegates subtasks to workers
-- Synthesizes worker outputs into a final result
+- 把任务拆解成子任务
+- 把子任务分派给 workers
+- 汇总各 worker 的输出, 形成最终结果
 
 ![worker.png](/oss/images/worker.png)
 
-Orchestrator-worker workflows provide more flexibility and are often used when subtasks cannot be predefined the way they can with [parallelization](#parallelization). This is common with workflows that write code or need to update content across multiple files. For example, a workflow that needs to update installation instructions for multiple Python libraries across an unknown number of documents might use this pattern.
+Orchestrator-worker workflow 灵活性更高, 常用于子任务无法像[并行化](#parallelization)那样预先定义的情况。这在写代码或需要跨多个文件更新内容的 workflow 中很常见。例如, 一个需要在数量未知的文档中更新多个 Python 库安装说明的 workflow, 就可能采用这种模式。
 
 :::python
 <CodeGroup>
@@ -1305,9 +1305,9 @@ for await (const snapshot of stream.values) {
 </CodeGroup>
 :::
 
-### Creating workers in LangGraph
+### 在 LangGraph 中创建 workers
 
-Orchestrator-worker workflows are common and LangGraph has built-in support for them. The `Send` API lets you dynamically create worker nodes and send them specific inputs. Each worker has its own state, and all worker outputs are written to a shared state key that is accessible to the orchestrator graph. This gives the orchestrator access to all worker output and allows it to synthesize them into a final output. The example below iterates over a list of sections and uses the `Send` API to send a section to each worker.
+Orchestrator-worker workflow 很常见, LangGraph 对它有内置支持。`Send` API 让你可以动态创建 worker nodes, 并把特定输入发送给它们。每个 worker 有自己的 state, 而所有 worker 的输出都会写入一个共享的 state key, orchestrator graph 可以访问该 key。这样 orchestrator 就能拿到全部 worker 的输出, 并把它们汇总为最终输出。下面的示例遍历一个 section 列表, 并使用 `Send` API 把一个 section 发送给每个 worker。
 
 
 :::python
@@ -1510,9 +1510,9 @@ console.log(state.finalReport);
 
 ## Evaluator-optimizer
 
-In evaluator-optimizer workflows, one LLM call creates a response and the other evaluates that response. If the evaluator or a [human-in-the-loop](/oss/langgraph/interrupts) determines the response needs refinement, feedback is provided and the response is recreated. This loop continues until an acceptable response is generated.
+在 evaluator-optimizer workflow 中, 一次 LLM 调用生成响应, 另一次 LLM 调用评估该响应。如果评估方或 [human-in-the-loop](/oss/langgraph/interrupts) 判断响应需要改进, 就会给出反馈并重新生成响应。这个循环会一直持续到生成可接受的响应为止。
 
-Evaluator-optimizer workflows are commonly used when there's particular success criteria for a task, but iteration is required to meet that criteria. For example, there's not always a perfect match when translating text between two languages. It might take a few iterations to generate a translation with the same meaning across the two languages.
+当任务有明确的成功标准、但需要反复迭代才能达标时, 通常会使用 evaluator-optimizer workflow。例如, 在两种语言之间翻译文本时, 并不总能一次到位; 可能需要几次迭代, 才能得到在两种语言中含义一致的译文。
 
 ![evaluator_optimizer.png](/oss/images/evaluator_optimizer.png)
 
@@ -1801,12 +1801,12 @@ for await (const snapshot of stream.values) {
 
 ## Agents
 
-Agents are typically implemented as an LLM performing actions using [tools](/oss/langchain/tools). They operate in continuous feedback loops, and are used in situations where problems and solutions are unpredictable. Agents have more autonomy than workflows, and can make decisions about the tools they use and how to solve problems. You can still define the available toolset and guidelines for how agents behave.
+Agent 通常被实现为 LLM 使用 [tools](/oss/langchain/tools) 执行操作。它们在持续的反馈循环中运行, 适用于问题与解法都不确定的场景。Agent 比 workflow 拥有更多自主性, 可以自行决定使用哪些 tools 以及如何解决问题。你仍然可以定义可用的 toolset, 以及 agent 行为方式的准则。
 
 ![agent.png](/oss/images/agent.png)
 
 <Note>
-To get started with agents, see the [quickstart](/oss/langchain/quickstart) or read more about [how they work](/oss/langchain/agents) in LangChain.
+要开始使用 agents, 请参阅 [快速入门](/oss/langchain/quickstart), 或进一步了解它们在 LangChain 中的 [工作原理](/oss/langchain/agents)。
 </Note>
 
 :::python
@@ -2173,9 +2173,9 @@ for await (const snapshot of stream.values) {
 
 ### ToolNode
 
-@[`ToolNode`] is a prebuilt node that executes tools in LangGraph workflows. It handles parallel tool execution, error handling, and state injection automatically.
+@[`ToolNode`] 是一个 prebuilt node, 用于在 LangGraph workflows 中执行 tools。它会自动处理 tool 的并行执行、错误处理与 state 注入。
 
-Use @[`ToolNode`] when you need fine-grained control over how your graph executes tools. This is the building block that powers tool execution in many LangGraph agent patterns.
+当你需要对 graph 执行 tools 的方式进行精细控制时, 就使用 @[`ToolNode`]。它是许多 LangGraph agent 模式中 tool 执行能力的构建块。
 
 :::python
 
@@ -2232,25 +2232,15 @@ const toolNode = new ToolNode([search, calculator]);
 
 :::
 
-#### Access graph state and context from tools
+#### 从 tools 中访问 graph state 与 context
 
-Tools executed by `ToolNode` receive the arguments generated by the model as
-their first argument. To read graph-side data that was not generated by the
-model, use one of these options:
+由 `ToolNode` 执行的 tools 会把 model 生成的参数作为第一个参数接收。要读取并非由 model 生成的 graph 侧数据, 可以使用以下方式之一:
 
-- In Python, read state and run-scoped context from the injected
-  @[`ToolRuntime`] argument.
-- In JavaScript, read state and run-scoped context from the tool's second
-  argument, typed as @[`ToolRuntime`].
+- 在 Python 中, 从注入的 @[`ToolRuntime`] 参数读取 state 与 run 级上下文。
+- 在 JavaScript 中, 从 tool 的第二个参数(类型为 @[`ToolRuntime`])读取 state 与 run 级上下文。
 
 <Note>
-Tools can only access the state values passed to the `ToolNode`. When
-`ToolNode` is added directly as a `StateGraph` node, that input is the current
-graph state. If you invoke a `ToolNode` manually from another node, pass the
-full state when tools need custom state fields. For example, `tool_node.invoke(state)`
-or `toolNode.invoke(state, config)` exposes the full state, while passing only
-`{"messages": state["messages"]}` or `{ messages: state.messages }` only exposes
-`messages`.
+Tools 只能访问传给 `ToolNode` 的 state 取值。当 `ToolNode` 作为 `StateGraph` 的 node 直接添加时, 输入就是当前的 graph state。如果你从另一个 node 手动调用 `ToolNode`, 当 tools 需要自定义的 state 字段时, 请传入完整 state。例如, `tool_node.invoke(state)` 或 `toolNode.invoke(state, config)` 会暴露完整 state, 而只传 `{"messages": state["messages"]}` 或 `{ messages: state.messages }` 则只会暴露 `messages`。
 </Note>
 
 :::python
@@ -2264,3 +2254,5 @@ or `toolNode.invoke(state, config)` exposes the full state, while passing only
 <WorkflowsAgentsToolRuntimeStateContextJs />
 
 :::
+
+{/* 源文档版本: src/oss/langgraph/workflows-agents.mdx | 翻译日期: 2026-10-01 */}

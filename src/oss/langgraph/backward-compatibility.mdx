@@ -1,39 +1,39 @@
 ---
-title: Backward compatibility
-description: Update LangGraph graph code in production without breaking in-flight runs.
+title: 向后兼容性
+description: 在生产环境中更新 LangGraph graph 代码, 而不破坏进行中的 run。
 ---
 
-Software needs to change in production. New requirements, bug fixes, and refactors all eventually land in your graph code. Because LangGraph runs the latest deployed graph against state that has been [persisted](/oss/langgraph/persistence) for existing threads, every change you ship is effectively a backward-compatible API change with respect to your existing checkpoints.
+软件在生产环境中必须持续变化。新的需求、bug 修复与重构, 最终都会落到你的 graph 代码里。由于 LangGraph 会让最新部署的 graph 针对已为现有的 thread [持久化](/oss/langgraph/persistence)的 state 运行, 因此你发布的每一处改动, 相对于你现有的 checkpoint 而言, 实际上都相当于一次向后兼容的 API 变更。
 
-Unlike workflow engines that pin a run to the version of code it started with, LangGraph applies the latest graph immediately to *every* thread, both new threads and threads that resume from a checkpoint. This is convenient: bug fixes propagate to in-flight conversations and agents without ceremony. It also means you must reason about how each change interacts with runs that started under the previous version of the code.
+与那些把一次 run 锁定在其启动时所使用的代码版本的 workflow 引擎不同, LangGraph 会立即把最新的 graph 应用到*每一个* thread, 无论是新 thread, 还是从 checkpoint 恢复的 thread。这很方便: bug 修复无需繁琐流程, 就能传播到进行中的对话与 agent。这也意味着, 你必须仔细思考每一处改动会如何与在上一版代码下启动的 run 相互作用。
 
-There are three categories of compatibility issues to watch for, in roughly the order you will encounter them:
+你需要留意的兼容性问题分为三类, 大致按你会遇到它们的顺序排列:
 
-1. [Technical compatibility](#technical-compatibility): The most common; the new code must still load and execute against existing State.
-2. [Business compatibility](#business-compatibility): Less common; existing runs should keep following the old business logic even though the code has changed.
-3. [Non-determinism](#non-determinism): Only applies to the [Functional API](/oss/langgraph/functional-api).
+1. [技术兼容性](#technical-compatibility): 最常见; 新代码必须仍能针对现有的 State 加载并执行。
+2. [业务兼容性](#business-compatibility): 较少见; 即便代码已经改变, 现有的 run 也应继续遵循旧的业务逻辑。
+3. [非确定性](#non-determinism): 仅适用于 [Functional API](/oss/langgraph/functional-api)。
 
 <Tip>
-For a short summary of which graph topology and state changes the runtime supports by default, see [Graph migrations](/oss/langgraph/graph-api#graph-migrations). The rest of this page covers the patterns you can apply when a change falls outside that supported set.
+关于 runtime 默认支持哪些 graph 拓扑与 state 变更的简要概述, 见 [graph 迁移](/oss/langgraph/graph-api#graph-migrations)。本页其余部分介绍的是当某项改动超出该受支持范围时, 你可以采用的模式。
 </Tip>
 
-## Technical compatibility
+## 技术兼容性
 
-Technical compatibility is the equivalent of an API breaking change in a microservice. The "API" here is the contract between your graph code and the data already persisted by the [checkpointer](/oss/langgraph/checkpointers#checkpointer-libraries) for existing threads. When a thread resumes, LangGraph deserializes the saved state, dispatches it to a node by name, and expects the node to return values that fit the state schema.
+技术兼容性相当于微服务中的 API 破坏性变更。这里的 "API" 指的是你的 graph 代码与 [checkpointer](/oss/langgraph/checkpointers#checkpointer-libraries) 已为现有的 thread 持久化的数据之间的契约。当一个 thread 恢复时, LangGraph 会反序列化已保存的 state, 按名称把它分派给某个 node, 并期望该 node 返回符合 state schema 的值。
 
-Common technical breakages:
+常见的技术性破坏:
 
-- **Renaming or removing a node** while threads are paused at or about to enter that node, for example at an @[`interrupt`] or via a checkpointed conditional edge that still routes to the old name. On resume, LangGraph cannot find the node by its saved name and the run fails. The starting point for resuming a run is the beginning of the node where execution stopped, so a missing node has nowhere to resume from.
-- **Renaming or removing a State key** that older checkpoints still contain or that downstream nodes still read.
-- **Tightening a State field**, such as making an `Optional` field required, narrowing a type, or adding a new required field with no default. Existing checkpoints will not satisfy the new schema.
+- **重命名或删除某个 node**, 而此时 thread 正停在该 node 处或即将进入该 node, 例如停在 @[`interrupt`] 处, 或经由一条已 checkpoint、但仍路由到旧名称的 conditional edge。恢复时, LangGraph 无法按保存的名称找到该 node, run 就会失败。恢复一次 run 的起点是执行停止处所在 node 的开头, 所以缺失的 node 没有可恢复的起点。
+- **重命名或删除某个 State key**, 而较旧的 checkpoint 中仍包含该 key, 或下游 node 仍会读取它。
+- **收紧某个 State 字段**, 例如把 `Optional` 字段改为必填、收窄类型, 或新增一个没有默认值的必填字段。现有的 checkpoint 将无法满足新的 schema。
 
-Edge topology itself is *not* persisted in the checkpoint. Adding, removing, or rerouting edges between nodes that still exist is safe for in-flight threads. Per the [Graph migrations](/oss/langgraph/graph-api#graph-migrations) summary, the only topology change that can break an interrupted thread is renaming or removing a node.
+edge 拓扑本身*不会*持久化到 checkpoint 中。在仍然存在的 node 之间新增、删除或改接 edge, 对于进行中的 thread 是安全的。根据 [graph 迁移](/oss/langgraph/graph-api#graph-migrations) 概述, 唯一会破坏处于 interrupt 状态的 thread 的拓扑变更, 就是重命名或删除某个 node。
 
-### Recommended patterns
+### 推荐模式
 
 :::python
 
-- Add new state fields as `NotRequired` (or `Optional[...] = None`) so old checkpoints still validate:
+- 把新 state 字段添加为 `NotRequired` (或 `Optional[...] = None`), 这样旧的 checkpoint 仍能通过校验:
 
   ```python
   from typing import NotRequired
@@ -44,58 +44,58 @@ Edge topology itself is *not* persisted in the checkpoint. Adding, removing, or 
       summary: NotRequired[str]  # [!code ++]
   ```
 
-- Treat removals as deprecations. Keep the field defined on the state for at least one drain cycle, even if no node reads it, so existing checkpoints continue to load.
-- Rename through *add-then-remove*. Add the new field or node alongside the old one, dual-write or route to both for a deprecation window, then remove the old one once you have confirmed no in-flight thread depends on it.
-- Keep node functions tolerant of unknown keys. `TypedDict` ignores extra keys at runtime, so leftover state from an older code version will not raise unless a node explicitly reads a missing key.
-- Use [time travel](/oss/langgraph/use-time-travel) and @[`graph.get_state`][get_state] to spot-check existing threads against the new code in a staging deployment before rolling out.
+- 把删除当作弃用来处理。至少在一个排空周期内保留该字段在 state 上的定义, 即使没有 node 读取它, 这样现有的 checkpoint 仍能继续加载。
+- 通过*先添加后删除*来重命名。把新的字段或 node 与旧的并排放置, 在一个弃用窗口期内双写或同时路由到两者, 然后在确认没有进行中的 thread 依赖它之后, 再删除旧的字段或 node。
+- 让 node 函数能容忍未知的 key。`TypedDict` 在 runtime 会忽略多余的 key, 所以来自旧代码版本的残留 state 不会报错, 除非某个 node 显式读取了一个缺失的 key。
+- 使用 [time travel](/oss/langgraph/use-time-travel) 与 @[`graph.get_state`][get_state], 在全量发布之前于预发布部署中用新代码抽查现有的 thread。
 
 :::
 
 :::js
 
-- Mark new state fields as optional (`z.string().optional()` or `.nullish()`) so old checkpoints still validate.
-- Treat removals as deprecations: keep the field on the schema for at least one drain cycle so existing checkpoints continue to load.
-- Rename via add-then-remove: add the new field or node alongside the old one, dual-write or route to both for a deprecation window, then remove the old one once no in-flight thread depends on it.
-- Use [time travel](/oss/langgraph/use-time-travel) and @[`graph.getState`][get_state] to spot-check existing threads against the new code in a staging deployment before rolling out.
+- 把新 state 字段标记为可选 (`z.string().optional()` 或 `.nullish()`), 这样旧的 checkpoint 仍能通过校验。
+- 把删除当作弃用来处理: 至少在一个排空周期内保留该字段在 schema 上的定义, 这样现有的 checkpoint 仍能继续加载。
+- 通过先添加后删除来重命名: 把新的字段或 node 与旧的并排放置, 在一个弃用窗口期内双写或同时路由到两者, 然后在确认没有进行中的 thread 依赖它之后, 再删除旧的字段或 node。
+- 使用 [time travel](/oss/langgraph/use-time-travel) 与 @[`graph.getState`][get_state], 在全量发布之前于预发布部署中用新代码抽查现有的 thread。
 
 :::
 
-### Detecting in-flight threads
+### 检测进行中的 thread
 
-Before you remove a node, rename a State key, or otherwise make a change that older threads cannot tolerate, you want to know whether any threads are currently parked on the version of the code you are about to drop. LangGraph itself does not maintain a search index over thread state, so the answer depends on where your graph runs.
+在你删除某个 node、重命名某个 State key, 或以其他方式做出旧 thread 无法容忍的改动之前, 你会想知道当前是否有任何 thread 正停在你即将下线的代码版本上。LangGraph 本身并不维护针对 thread state 的搜索索引, 所以答案取决于你的 graph 在哪里运行。
 
-**If you deploy to [LangSmith](/langsmith/deployment).** Use the Agent Server's thread search to filter by status. The `status` field accepts `idle`, `busy`, `interrupted`, and `error`, so you can bulk-query for `interrupted` or `busy` threads, optionally narrowed with metadata filters. See [Filter by thread status](/langsmith/use-threads#filter-by-thread-status) and [List threads](/langsmith/use-threads#list-threads).
+**如果你部署到 [LangSmith](/langsmith/deployment)。** 使用 Agent Server 的 thread 搜索按状态过滤。`status` 字段接受 `idle`、`busy`、`interrupted` 与 `error`, 因此你可以批量查询 `interrupted` 或 `busy` 的 thread, 并可选用元数据过滤器进一步收窄范围。见 [按 thread 状态过滤](/langsmith/use-threads#filter-by-thread-status) 与 [列出 thread](/langsmith/use-threads#list-threads)。
 
-**Anywhere LangGraph runs.** Use [LangSmith tracing](/oss/langgraph/observability) to monitor which nodes are being entered and exited in production. This is the most reliable signal that a node or state field is no longer reachable in any active code path.
+**LangGraph 运行的任何地方。** 使用 [LangSmith 追踪](/oss/langgraph/observability) 监控生产环境中哪些 node 正在被进入与退出。这是判断某个 node 或 state 字段在任何活跃代码路径中都不再可达的最可靠信号。
 
-**When you already have a `thread_id`.** Inspect that single thread directly:
+**当你已经有一个 `thread_id` 时。** 直接检查那单个 thread:
 
 :::python
 
-- @[`graph.get_state(config)`][get_state] returns the latest checkpoint, including which node the thread is paused at and any pending interrupts.
-- @[`graph.get_state_history(config)`][get_state_history] returns the full chronological list of checkpoints for the thread.
+- @[`graph.get_state(config)`][get_state] 返回最新的 checkpoint, 其中包括该 thread 当前停在哪个 node, 以及任何待处理的 interrupt。
+- @[`graph.get_state_history(config)`][get_state_history] 返回该 thread 完整的、按时间顺序排列的 checkpoint 列表。
 
 :::
 
 :::js
 
-- @[`graph.getState(config)`][get_state] returns the latest checkpoint, including which node the thread is paused at and any pending interrupts.
-- @[`graph.getStateHistory(config)`][get_state_history] returns the full chronological list of checkpoints for the thread.
+- @[`graph.getState(config)`][get_state] 返回最新的 checkpoint, 其中包括该 thread 当前停在哪个 node, 以及任何待处理的 interrupt。
+- @[`graph.getStateHistory(config)`][get_state_history] 返回该 thread 完整的、按时间顺序排列的 checkpoint 列表。
 
 :::
 
-When in doubt, keep the deprecated node or field in place until both the Agent Server thread list and tracing show no further activity on it.
+拿不准时, 就保留已弃用的 node 或字段, 直到 Agent Server 的 thread 列表与追踪都显示它不再有任何活动为止。
 
-## Business compatibility
+## 业务兼容性
 
-Sometimes a change is technically valid (every existing checkpoint still loads and every node still resolves), but the *meaning* of the new graph differs from the old one. The new behavior is correct for new threads, and you do not want to retroactively apply it to threads that started under the old logic.
+有时某处改动在技术上合法 (每个现有的 checkpoint 仍能加载, 每个 node 仍能解析), 但新 graph 的*含义*与旧的并不相同。新行为对于新 thread 是正确的, 而你不希望把它追溯应用到在旧逻辑下启动的 thread 上。
 
-For example, suppose your graph runs `intake → triage → respond`, and you decide to insert a new `policy_check` step between `triage` and `respond`:
+例如, 假设你的 graph 运行 `intake → triage → respond`, 而你决定在 `triage` 与 `respond` 之间插入一个新的 `policy_check` 步骤:
 
-- Threads that have already passed `triage` should continue straight to `respond` (the old flow).
-- New threads should run the full new flow.
+- 已经通过 `triage` 的 thread 应当直接继续到 `respond` (旧的流程)。
+- 新 thread 应当运行完整的新流程。
 
-The recommended pattern is to record the relevant *behavioral version* on the state at thread start, then branch on it with a [conditional edge](/oss/langgraph/graph-api#conditional-edges):
+推荐的做法是: 在 thread 启动时把相关的*行为版本*记录到 state 上, 然后用一条 [conditional edge](/oss/langgraph/graph-api#conditional-edges) 据此分支:
 
 :::python
 
@@ -145,23 +145,25 @@ graph = builder.compile()
 
 :::
 
-Old threads that resume after `triage` read `flow_version` from their saved state (or fall through to the v1 default) and skip `policy_check`. New threads start at `intake`, are stamped with `flow_version=2`, and run the new path. Once all v1 threads have completed, you can remove the version flag and the conditional edge.
+在 `triage` 之后恢复的旧 thread 会从它们保存的 state 中读取 `flow_version` (或回退到 v1 默认值), 并跳过 `policy_check`。新 thread 从 `intake` 开始, 被打上 `flow_version=2` 的标记, 并运行新路径。一旦所有 v1 thread 都已完成, 你就可以移除这个版本标志与那条 conditional edge。
 
-This pattern only works if you set the version *at thread start*, before any branch that needs to be versioned. Setting it later means existing threads will not have it set when they need it.
+只有当你在*thread 启动时*、在任何需要版本化的分支之前就设置好版本, 这个模式才有效。稍后再设置, 意味着现有的 thread 在需要它的时候尚未被设置。
 
-## Non-determinism
+## 非确定性
 
-This category only applies to the [Functional API](/oss/langgraph/functional-api) and to [**tasks**](/oss/langgraph/functional-api#task) or @[`interrupt`] calls inside a [Graph API](/oss/langgraph/graph-api) **node**. Plain Graph API **nodes** [re-run from the start of the node function](/oss/langgraph/graph-api#re-execution-and-idempotency) on resume; design side effects to be idempotent, but you do not need to preserve task call order unless you use **tasks** or @[`interrupt`] in that **node**.
+这一类只适用于 [Functional API](/oss/langgraph/functional-api), 以及 [**tasks**](/oss/langgraph/functional-api#task) 或位于某个 [Graph API](/oss/langgraph/graph-api) **node** 内部的 @[`interrupt`] 调用。普通的 Graph API **node** 在恢复时会[从 node 函数的开头重新运行](/oss/langgraph/graph-api#re-execution-and-idempotency); 应把副作用设计为幂等的, 但除非你在该 **node** 中使用了 **tasks** 或 @[`interrupt`], 否则无需保留 task 的调用顺序。
 
-A Functional API **entrypoint** compiles to a single **node** that replays the entrypoint body from the beginning when a run resumes, using cached @[`@task`][task] results to skip work that has already been done. Two kinds of changes break this model:
+一个 Functional API **entrypoint** 会编译为单个 **node**, 当 run 恢复时, 该 node 会从头重放 entrypoint 的函数体, 并使用已缓存的 @[`@task`][task] 结果来跳过已经完成的工作。有两类改动会破坏这个模型:
 
-- **Adding, removing, or reordering `@task` calls or @[`interrupt`] calls** that come *before* the resume point. LangGraph matches cached results and resume values to calls by their position in the replay, so shifting that position can cause the wrong cached value to be replayed against a different call.
-- **Introducing non-deterministic operations outside of a `@task`**, such as `time.time()`, `random.random()`, or a network call inlined in the entrypoint body. On replay these produce different values than they did on the first run, which can change the control flow.
+- **新增、删除或重排位于恢复点*之前*的 `@task` 调用或 @[`interrupt`] 调用**。LangGraph 依据各次调用在重放中的位置, 把缓存结果与恢复值匹配到调用上, 因此挪动该位置可能导致把错误的缓存值重放到另一次调用上。
+- **在 `@task` 之外引入非确定性操作**, 例如 `time.time()`、`random.random()`, 或内联在 entrypoint 函数体中的网络调用。重放时, 它们产生的值与首次运行时不同, 这可能改变控制流。
 
-For a deeper treatment with examples, see [Determinism](/oss/langgraph/functional-api#determinism) and [Common pitfalls](/oss/langgraph/functional-api#common-pitfalls) in the Functional API guide.
+关于更深入的讲解与示例, 见 Functional API 指南中的 [确定性](/oss/langgraph/functional-api#determinism) 与 [常见陷阱](/oss/langgraph/functional-api#common-pitfalls)。
 
-If you need to make non-trivial code changes to an `@entrypoint` that has in-flight runs, the safest options are:
+如果你需要对一个仍有进行中 run 的 `@entrypoint` 做非平凡的代码改动, 最安全的选项是:
 
-- Let in-flight runs drain before deploying the change.
-- Wrap any new logic in a new `@task` so its results are checkpointed independently.
-- Register a new entrypoint under a new graph name in `langgraph.json` for the new behavior, and route new threads to it.
+- 在部署该改动之前, 先让进行中的 run 排空。
+- 把任何新逻辑包进一个新的 `@task`, 这样它的结果会被独立 checkpoint。
+- 在 `langgraph.json` 中以新的 graph 名称注册一个新的 entrypoint 来承载新行为, 并把新 thread 路由到它。
+
+{/* 源文档版本: src/oss/langgraph/backward-compatibility.mdx @ f6b65de6e (2026-06-11) | 翻译日期: 2026-10-01 */}
