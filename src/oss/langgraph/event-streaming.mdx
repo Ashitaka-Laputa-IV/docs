@@ -1,11 +1,11 @@
 ---
-title: Event streaming
-description: Stream LangGraph runs with typed projections for messages, state, subgraphs, output, and extensions.
+title: 事件 streaming
+description: 为 messages、state、subgraph、output 与 extensions 提供类型化投影, 从而 stream LangGraph run。
 ---
 
-Event streaming is the recommended in-process streaming model for most LangGraph application code. It returns a run stream object that can be consumed in multiple ways at the same time.
+事件 streaming 是大多数 LangGraph 应用代码推荐的进程内 streaming 模型。它返回一个 run stream 对象, 该对象可以同时以多种方式被消费。
 
-## Quickstart
+## 快速开始
 
 :::python
 ```py
@@ -38,73 +38,73 @@ const finalState = await stream.output;
 ```
 :::
 
-To stream against a graph deployed behind an Agent Server, see the [LangSmith Streaming API](/langsmith/streaming).
+若要针对部署在 Agent Server 之后的 graph 进行 stream, 见 [LangSmith Streaming API](/langsmith/streaming)。
 
-## How the pieces fit together
+## 各部分如何配合
 
-The streaming stack has two main layers:
+streaming 栈有两个主要层:
 
-1. **Streaming** emits raw graph execution events from the Pregel engine.
-2. **Event streaming** normalizes those events, runs them through stream transformers, and exposes typed projections.
+1. **streaming** 从 Pregel 引擎发出原始 graph 执行事件。
+2. **事件 streaming** 规范化这些事件, 让它们流经 stream transformers, 并暴露类型化投影。
 
 <div className="my-6 rounded-xl border bg-gray-50 p-4 dark:bg-gray-900">
   <div className="mx-auto max-w-2xl space-y-2 text-sm">
     <div className="rounded-lg border border-slate-300 bg-white p-3 text-center dark:border-slate-700 dark:bg-slate-950">
-      <div className="font-semibold text-slate-900 dark:text-slate-100">Pregel engine</div>
-      <div className="mt-1 text-xs text-slate-600 dark:text-slate-300">Runs graph steps</div>
+      <div className="font-semibold text-slate-900 dark:text-slate-100">Pregel 引擎</div>
+      <div className="mt-1 text-xs text-slate-600 dark:text-slate-300">运行 graph 步骤</div>
     </div>
-    <div className="text-center text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">emits</div>
+    <div className="text-center text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">发出</div>
     <div className="rounded-lg border border-orange-300 bg-orange-50 p-3 text-center dark:border-orange-800 dark:bg-orange-950">
-      <div className="font-semibold text-orange-900 dark:text-orange-100">Raw Pregel events</div>
+      <div className="font-semibold text-orange-900 dark:text-orange-100">原始 Pregel 事件</div>
       <div className="mt-1 text-xs text-orange-700 dark:text-orange-300"><code>updates</code>, <code>values</code>, <code>messages</code>, <code>custom</code>, <code>checkpoints</code>, <code>tasks</code>, <code>debug</code></div>
     </div>
-    <div className="text-center text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">sent to</div>
+    <div className="text-center text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">发送至</div>
     <div className="rounded-lg border border-blue-300 bg-blue-50 p-3 text-center dark:border-blue-800 dark:bg-blue-950">
-      <div className="font-semibold text-blue-900 dark:text-blue-100">Event router</div>
-      <div className="mt-1 text-xs text-blue-700 dark:text-blue-300">Routes each event through the transformer pipeline</div>
+      <div className="font-semibold text-blue-900 dark:text-blue-100">事件路由器</div>
+      <div className="mt-1 text-xs text-blue-700 dark:text-blue-300">让每个事件流经 transformer 流水线</div>
     </div>
-    <div className="text-center text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">cascades through</div>
+    <div className="text-center text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">级联穿过</div>
     <div className="rounded-lg border border-green-300 bg-green-50 p-3 dark:border-green-800 dark:bg-green-950">
-      <div className="font-semibold text-green-900 dark:text-green-100">Stream transformers</div>
+      <div className="font-semibold text-green-900 dark:text-green-100">stream transformers</div>
       <div className="mt-2 grid gap-2 text-xs text-green-800 dark:text-green-200 sm:grid-cols-4">
         <div className="rounded border border-green-200 bg-white px-2 py-1 dark:border-green-800 dark:bg-green-950">ValuesTransformer</div>
         <div className="rounded border border-green-200 bg-white px-2 py-1 dark:border-green-800 dark:bg-green-950">MessagesTransformer</div>
         <div className="px-2 py-1 text-center text-green-600 dark:text-green-300">...</div>
-        <div className="rounded border border-green-200 bg-white px-2 py-1 dark:border-green-800 dark:bg-green-950">Custom transformers</div>
+        <div className="rounded border border-green-200 bg-white px-2 py-1 dark:border-green-800 dark:bg-green-950">自定义 transformer</div>
       </div>
     </div>
-    <div className="text-center text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">produces</div>
+    <div className="text-center text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">产出</div>
     <div className="rounded-lg border border-purple-300 bg-purple-50 p-3 text-center dark:border-purple-800 dark:bg-purple-950">
-      <div className="font-semibold text-purple-900 dark:text-purple-100">Event Stream</div>
-      <div className="mt-1 text-xs text-purple-700 dark:text-purple-300">Projected events for application code</div>
+      <div className="font-semibold text-purple-900 dark:text-purple-100">事件 stream</div>
+      <div className="mt-1 text-xs text-purple-700 dark:text-purple-300">为应用代码投影出的事件</div>
     </div>
   </div>
 </div>
 
-The event router is the bridge between the two layers. It receives normalized Pregel events and passes each event through the registered stream transformers. Built-in transformers create standard projections such as `stream.messages`, `stream.values`, `stream.subgraphs`, and `stream.output`. Custom transformers can add application-specific projections under `stream.extensions`.
+事件路由器是两层之间的桥梁。它接收规范化后的 Pregel 事件, 并让每个事件流经已注册的 stream transformers。内置 transformer 会创建标准投影, 例如 `stream.messages`、`stream.values`、`stream.subgraphs` 与 `stream.output`。自定义 transformer 可以在 `stream.extensions` 下添加特定于应用的投影。
 
-## What event streaming provides
+## 事件 streaming 提供什么
 
-The run stream exposes typed projections over one underlying event flow:
+run stream 在单一底层事件流之上暴露类型化投影:
 
-| Projection | Use |
+| 投影 | 用途 |
 | ---------- | --- |
-| `stream` | Iterate every protocol event. |
-| `stream.messages` | Stream chat model messages and token deltas. |
-| `stream.values` | Iterate state snapshots and await the final value. |
-| `stream.output` | Await the final output. |
-| `stream.subgraphs` | Discover and observe nested graph executions. |
-| `stream.interrupts` | Inspect human-in-the-loop interrupt payloads. |
-| `stream.interrupted` | Check whether the run paused for human input. |
-| `stream.extensions` | Consume custom stream transformer projections. |
+| `stream` | 迭代每一个协议事件。 |
+| `stream.messages` | Stream chat model 消息与 token 增量。 |
+| `stream.values` | 迭代 state snapshot 并等待最终值。 |
+| `stream.output` | 等待最终输出。 |
+| `stream.subgraphs` | 发现并观察嵌套的 graph 执行。 |
+| `stream.interrupts` | 检查 human-in-the-loop interrupt payload。 |
+| `stream.interrupted` | 检查该 run 是否为等待人工输入而暂停。 |
+| `stream.extensions` | 消费自定义 stream transformer 投影。 |
 
-Multiple consumers can read these projections concurrently. Reading `stream.messages` does not consume events needed by `stream.values`, `stream.subgraphs`, or `stream.output`.
+多个消费者可以并发读取这些投影。读取 `stream.messages` 不会消耗 `stream.values`、`stream.subgraphs` 或 `stream.output` 所需的事件。
 
-Event streaming sits one level above [streaming](/oss/langgraph/streaming), which exposes raw graph execution events through `stream_mode` modes such as `updates`, `values`, `messages`, `custom`, `checkpoints`, `tasks`, and `debug`. Use streaming when you need low-level access to those modes; use event streaming when application code benefits from typed projections.
+事件 streaming 位于 [streaming](/oss/langgraph/streaming) 之上的一层, 后者通过 `stream_mode` 模式暴露原始 graph 执行事件, 例如 `updates`、`values`、`messages`、`custom`、`checkpoints`、`tasks` 与 `debug`。当你需要对这些模式进行底层访问时, 使用 streaming; 当应用代码能从类型化投影中受益时, 使用事件 streaming。
 
-## Stream messages
+## Stream 消息
 
-Use `stream.messages` for chat model output:
+对 chat model 输出使用 `stream.messages`:
 
 :::python
 ```py
@@ -134,18 +134,18 @@ for await (const message of stream.messages) {
 :::
 
 :::python
-`message.text` is iterable in synchronous code. Iterate it for token-by-token output, or call `str(message.text)` for the complete text.
+在同步代码中, `message.text` 是可迭代的。逐 token 迭代它以获得输出, 或调用 `str(message.text)` 获取完整文本。
 
-`message.reasoning` exposes reasoning deltas, and `message.tool_calls` exposes tool-call argument chunks. If you need text, reasoning, and tool-call chunks in exact arrival order, iterate the message stream's raw events instead of each projection separately.
+`message.reasoning` 暴露 reasoning 增量, `message.tool_calls` 暴露 tool-call 参数块。如果你需要按精确到达顺序获取 text、reasoning 与 tool-call 块, 请迭代该消息 stream 的原始事件, 而不是分别迭代各个投影。
 :::
 
 :::js
-`message.text` is both an async iterable and a promise-like value. Iterate it for token-by-token output, or await it for the complete text.
+`message.text` 既是 async 可迭代对象, 也是类 promise 的值。逐 token 迭代它以获得输出, 或 await 它获取完整文本。
 :::
 
-## Stream subgraphs
+## Stream subgraph
 
-Use `stream.subgraphs` to observe nested graph work without parsing namespace strings:
+使用 `stream.subgraphs` 观察嵌套的 graph 工作, 而无需解析 namespace 字符串:
 
 :::python
 ```py
@@ -173,13 +173,13 @@ for await (const subgraph of stream.subgraphs) {
 ```
 :::
 
-`subgraph.graph_name` is the `name` of the compiled graph or agent. A named agent dispatched from a tool (for example, a `create_agent(name=...)` invoked through the Deep Agents `task` tool) surfaces here under that name, and the `lifecycle` event that opens the scope carries a `cause` linking back to the dispatching tool call. See [Lifecycle](#lifecycle) for more information.
+`subgraph.graph_name` 是已编译 graph 或 agent 的 `name`。从 tool 中派发的具名 agent(例如通过 Deep Agents 的 `task` tool 调用的 `create_agent(name=...)`)会以该名称出现在这里, 而开启该 scope 的 `lifecycle` 事件会携带一个 `cause`, 指回发起派发的 tool call。更多信息见 [Lifecycle](#lifecycle)。
 
-For product-specific streams, see [Deep Agents streaming](/oss/deepagents/event-streaming) for subagent streams and [LangChain agent streaming](/oss/langchain/streaming) for tool calls and middleware events.
+关于特定于产品的 stream, 见 [Deep Agents streaming](/oss/deepagents/event-streaming) 的 subagent stream, 以及 [LangChain agent streaming](/oss/langchain/streaming) 的 tool call 与 middleware 事件。
 
 ## Stream state
 
-Use `stream.values` to stream full state snapshots after each step:
+使用 `stream.values` 在每一步之后 stream 完整 state snapshot:
 
 :::python
 ```py
@@ -204,10 +204,10 @@ const finalState = await stream.output;
 ```
 :::
 
-## Stream multiple projections
+## Stream 多个投影
 
 :::python
-For concurrent consumption in async code, use `astream_events` with `asyncio.gather`:
+在 async 代码中进行并发消费, 请将 `astream_events` 与 `asyncio.gather` 配合使用:
 
 ```py
 import asyncio
@@ -225,7 +225,7 @@ async def consume_subgraphs():
 await asyncio.gather(consume_messages(), consume_subgraphs())
 ```
 
-For synchronous code, use `stream.interleave(...)` to consume multiple projections in strict arrival order:
+在同步代码中, 使用 `stream.interleave(...)` 按严格的到达顺序消费多个投影:
 
 ```py
 stream = graph.stream_events(input, version="v3")
@@ -241,7 +241,7 @@ for name, item in stream.interleave("values", "messages", "subgraphs"):
 :::
 
 :::js
-Use concurrent consumers when you need multiple projections in JavaScript:
+在 JavaScript 中需要多个投影时, 使用并发消费者:
 
 ```ts
 await Promise.all([
@@ -259,11 +259,11 @@ await Promise.all([
 ```
 :::
 
-## Resume after an interrupt
+## 在 interrupt 之后恢复
 
-When a graph pauses for human input, inspect `stream.interrupted` and `stream.interrupts`, then resume by calling `stream_events(..., version="v3")` again with `Command`.
+当 graph 为等待人工输入而暂停时, 检查 `stream.interrupted` 与 `stream.interrupts`, 然后再次调用 `stream_events(..., version="v3")` 并传入 `Command` 来恢复。
 
-Resume requires a graph compiled with a checkpointer and a config carrying a thread ID — see [persistence](/oss/langgraph/persistence).
+恢复要求 graph 使用 checkpointer 编译, 并且 config 携带一个 thread ID — 见 [persistence](/oss/langgraph/persistence)。
 
 :::python
 ```py
@@ -307,9 +307,9 @@ const finalState = await stream.output;
 ```
 :::
 
-## Stream all protocol events
+## Stream 所有协议事件
 
-Use the run object itself when you want the raw protocol event stream:
+当你需要原始协议事件 stream 时, 直接使用 run 对象本身:
 
 :::python
 ```py
@@ -337,7 +337,7 @@ for await (const event of stream) {
 ```
 :::
 
-Each event is a `ProtocolEvent` envelope wrapping a channel-specific payload. The same shape is what a transformer's `process(event)` receives.
+每个事件都是一个 `ProtocolEvent` 封装, 内含特定于通道的 payload。transformer 的 `process(event)` 接收的正是这种形状。
 
 :::python
 ```py
@@ -369,30 +369,30 @@ interface ProtocolEvent {
 ```
 :::
 
-The `namespace` is a path from the root graph to the scope that emitted the event. The root is the empty array `[]`. Each child execution adds one `"name:runtime_id"` segment, so a nested tool call inside a subgraph looks like `["researcher:6f4d", "tools:91ac"]`. The name before `:` is the stable graph or node name; the suffix is a per-invocation runtime ID. Filter raw events by namespace yourself when you only care about a specific subtree — `stream.subgraphs` already does this for nested graph executions.
+`namespace` 是从根 graph 到发出该事件的 scope 的路径。根是空数组 `[]`。每个子执行会添加一个 `"name:runtime_id"` 段, 因此 subgraph 内部的嵌套 tool call 看起来像 `["researcher:6f4d", "tools:91ac"]`。`:` 之前的名称是稳定的 graph 或 node 名称; 后缀是每次调用的 runtime ID。当你只关心某个特定子树时, 请自行按 namespace 过滤原始事件 — `stream.subgraphs` 已为嵌套 graph 执行做好了这件事。
 
-## Channels and event lifecycle
+## 通道与事件生命周期
 
-Raw events flow on channels. The channel name appears as the event's `method`; each channel emits a specific event shape.
+原始事件在通道上流动。通道名称会作为事件的 `method` 出现; 每个通道发出特定的事件形状。
 
-| Channel | Purpose |
+| 通道 | 用途 |
 | ------- | ------- |
-| `values` | Full graph state snapshots. |
-| `updates` | Per-node state deltas. |
-| `messages` | Content-block-centric chat model output. |
-| `tools` | Tool call start, streamed output, finish, and error events. |
-| `lifecycle` | Run, subgraph, and subagent status changes. |
-| `checkpoints` | Lightweight checkpoint envelopes for branching and time travel. |
-| `input` | Human-in-the-loop input requests and responses. |
-| `tasks` | Pregel task creation and result events. |
-| `custom` | User-defined payloads from graph code. |
-| `custom:<name>` | Application-defined stream transformer output. |
+| `values` | 完整的 graph state snapshot。 |
+| `updates` | 每个 node 的 state 增量。 |
+| `messages` | 以 content block 为中心的 chat model 输出。 |
+| `tools` | tool call 的启动、stream 输出、完成与错误事件。 |
+| `lifecycle` | run、subgraph 与 subagent 的状态变化。 |
+| `checkpoints` | 用于分支与 time travel 的轻量 checkpoint 封装。 |
+| `input` | human-in-the-loop 的输入请求与响应。 |
+| `tasks` | Pregel task 的创建与结果事件。 |
+| `custom` | 来自 graph 代码的用户自定义 payload。 |
+| `custom:<name>` | 应用自定义的 stream transformer 输出。 |
 
-The typed projections (`stream.messages`, `stream.values`, etc.) are built from these channels. The channel name appears as the `method` field on raw events when you iterate the run object directly.
+类型化投影(`stream.messages`、`stream.values` 等)由这些通道构建而成。当你直接迭代 run 对象时, 通道名称会作为原始事件上的 `method` 字段出现。
 
-### Messages
+### 消息
 
-The `messages` channel models output as content blocks. The data's `event` field is one of:
+`messages` 通道将输出建模为 content block。数据的 `event` 字段是以下之一:
 
 - `message-start`
 - `content-block-start`
@@ -400,9 +400,9 @@ The `messages` channel models output as content blocks. The data's `event` field
 - `content-block-finish`
 - `message-finish`
 
-Content blocks have explicit boundaries: a block starts, emits zero or more deltas, and finishes before the next block in the same message starts. This makes token streaming, reasoning blocks, tool-call blocks, and multimodal content explicit without requiring provider-specific formats. `message-finish` may include token usage; unrecoverable model-call failures arrive as message error events.
+content block 具有明确的边界: 一个块开始、发出零个或多个增量, 然后在该消息中的下一个块开始之前结束。这让 token streaming、reasoning 块、tool-call 块与多模态内容变得显式, 而无需依赖特定于 provider 的格式。`message-finish` 可能包含 token 用量; 不可恢复的 model 调用失败会以消息错误事件的形式到达。
 
-To consume raw content-block events directly instead of using the `stream.messages` projection:
+若要直接消费原始 content-block 事件, 而不使用 `stream.messages` 投影:
 
 :::python
 ```py
@@ -444,18 +444,18 @@ for await (const event of stream) {
 
 ### Tools
 
-The `tools` channel exposes tool execution. The data's `event` field is one of:
+`tools` 通道暴露 tool 执行。数据的 `event` 字段是以下之一:
 
 - `tool-started`
 - `tool-output-delta`
 - `tool-finished`
 - `tool-error`
 
-Tool events are correlated by tool call ID, so a tool execution can be joined back to its originating tool-call content block on the `messages` channel.
+tool 事件通过 tool call ID 关联, 因此一次 tool 执行可以回连到它在 `messages` 通道上发起它的 tool-call content block。
 
-### Lifecycle
+### 生命周期
 
-The `lifecycle` channel tracks root run, subgraph, and subagent status. The data's `event` field is one of:
+`lifecycle` 通道追踪根 run、subgraph 与 subagent 的状态。数据的 `event` 字段是以下之一:
 
 - `started`
 - `running`
@@ -463,19 +463,19 @@ The `lifecycle` channel tracks root run, subgraph, and subagent status. The data
 - `failed`
 - `interrupted`
 
-Beyond `event`, lifecycle data may include an optional `graph_name`, `error`, and `cause` describing why a child scope started (parent tool call, fan-out send, edge transition).
+除 `event` 之外, lifecycle 数据还可能包含可选的 `graph_name`、`error` 与 `cause`, 用于描述某个子 scope 为何启动(父 tool call、扇出 send、edge 转移)。
 
-## Build your own projection
+## 构建你自己的投影
 
-Stream transformers are the projection layer in event streaming. They observe protocol events, keep their own state, and expose derived views of a run — things like tool activity, token totals, progress events, artifacts, or messages for another protocol. `StreamChannel` is the projection primitive transformers use to publish those views.
+stream transformer 是事件 streaming 中的投影层。它们观察协议事件, 维护自身 state, 并暴露 run 的派生视图 — 例如 tool 活动、token 总数、进度事件、artifact, 或供另一种协议使用的消息。`StreamChannel` 是 transformer 用来发布这些视图的投影原语。
 
-Built-in projections (`stream.messages`, `stream.values`, `stream.subgraphs`, `stream.output`) and product-specific projections (LangChain's `stream.tool_calls`, Deep Agents' `stream.subagents`) are themselves transformers using this same contract. User transformers stack on top via compile-time or call-time registration, and their projections appear under `stream.extensions`.
+内置投影(`stream.messages`、`stream.values`、`stream.subgraphs`、`stream.output`)与特定于产品的投影(LangChain 的 `stream.tool_calls`、Deep Agents 的 `stream.subagents`)本身就是使用同一套 contract 的 transformer。用户 transformer 通过编译时或调用时注册叠加在其上, 它们的投影出现在 `stream.extensions` 下。
 
-Write one when the existing projections don't match the shape an application needs.
+当现有投影不匹配应用所需的形状时, 就编写一个。
 
-### How transformers work
+### transformer 如何工作
 
-Event streaming starts with streaming output from the LangGraph Pregel engine. The runtime normalizes those chunks into protocol events, then a stream handler routes each event through a stack of stream transformers.
+事件 streaming 从 LangGraph Pregel 引擎的 streaming 输出开始。runtime 将这些数据块规范化为协议事件, 然后由 stream 处理器让每个事件流经一叠 stream transformers。
 
 ```mermaid
 flowchart TD
@@ -485,18 +485,18 @@ flowchart TD
     D --> E[Run projections]
 ```
 
-The stream handler is the central dispatcher for one stream. For every protocol event, it:
+stream 处理器是单个 stream 的中心分发器。对于每个协议事件, 它会:
 
-1. Calls each registered transformer's `process(event)` hook in order.
-2. Wires named `StreamChannel` pushes back onto the protocol event stream.
-3. Stores the event in the run stream unless a transformer suppresses it.
-4. Calls `finalize()` or `fail()` on every transformer when the run ends.
+1. 按顺序调用每个已注册 transformer 的 `process(event)` 钩子。
+2. 将具名 `StreamChannel` 的 push 接回协议事件 stream。
+3. 将事件存入 run stream, 除非某个 transformer 抑制它。
+4. 在 run 结束时对每个 transformer 调用 `finalize()` 或 `fail()`。
 
-Transformers are observational. They do not call back into the graph runtime. Instead, they consume events and push derived values into `StreamChannel`, promises, or other projection objects.
+transformer 是观察式的。它们不会回调 graph runtime。相反, 它们消费事件, 并把派生值推送进 `StreamChannel`、promise 或其他投影对象。
 
-### Transformer shape
+### transformer 形态
 
-A transformer implements the `StreamTransformer` interface:
+一个 transformer 实现 `StreamTransformer` 接口:
 
 :::python
 ```py
@@ -529,14 +529,14 @@ interface StreamTransformer<TProjection = unknown> {
 ```
 :::
 
-- `init()` creates the projection object. User transformer projections appear under `stream.extensions`.
-- `process()` observes each protocol event. See [Stream all protocol events](#stream-all-protocol-events) for the `ProtocolEvent` shape. Return `false` only when you intentionally want to suppress the original event.
-- `finalize()` closes or resolves non-channel projections after a successful stream.
-- `fail()` propagates errors to non-channel projections.
+- `init()` 创建投影对象。用户 transformer 的投影出现在 `stream.extensions` 下。
+- `process()` 观察每个协议事件。`ProtocolEvent` 的形状见 [Stream all protocol events](#stream-all-protocol-events)。仅当你确实想要抑制原始事件时才返回 `false`。
+- `finalize()` 在 stream 成功结束后关闭或 resolve 非通道投影。
+- `fail()` 将错误传播给非通道投影。
 
-### Declaring required stream modes
+### 声明所需的 stream mode
 
-`required_stream_modes` controls which Pregel stream modes the underlying graph emits during the stream. The runtime takes the union of every registered transformer's `required_stream_modes` and passes that union as the `stream_mode` argument to the graph's `.stream()` call. **Modes that no transformer requests are never emitted** — declaring `("custom",)` is what causes `custom` events to flow through the run at all.
+`required_stream_modes` 控制底层 graph 在 stream 期间发出哪些 Pregel stream mode。runtime 取所有已注册 transformer 的 `required_stream_modes` 的并集, 并将该并集作为 `stream_mode` 参数传给 graph 的 `.stream()` 调用。**没有被任何 transformer 请求的 mode 永远不会被发出** — 声明 `("custom",)` 正是让 `custom` 事件在整个 run 中流动的原因。
 
 :::python
 ```py
@@ -550,33 +550,33 @@ class CustomTransformer(StreamTransformer):
 ```
 :::
 
-`process()` receives every event the graph emits and is responsible for filtering by `event["method"]`. The declaration turns on upstream emission; it does not narrow what `process()` sees. Valid values are the Pregel stream modes: `"messages"`, `"tools"`, `"custom"`, `"values"`, `"updates"`, `"checkpoints"`, `"tasks"`, `"debug"`. Each transformer must declare every mode it acts on — an omitted mode is not emitted by the graph and never reaches `process()`.
+`process()` 接收 graph 发出的每一个事件, 并负责按 `event["method"]` 进行过滤。该声明开启上游发出; 它不会收窄 `process()` 所看到的内容。有效值是 Pregel stream mode: `"messages"`、`"tools"`、`"custom"`、`"values"`、`"updates"`、`"checkpoints"`、`"tasks"`、`"debug"`。每个 transformer 必须声明它所要处理的每一个 mode — 被省略的 mode 不会被 graph 发出, 也永远不会到达 `process()`。
 
 ### StreamChannel
 
-`StreamChannel` is the projection primitive a transformer uses for streaming values. It always exposes an iterable stream on `stream.extensions.<name>`. The constructor argument decides whether each `push()` also flows into the run's main event stream as a `custom:<name>` event—that is, whether the projection's values show up when iterating raw protocol events.
+`StreamChannel` 是 transformer 用来 stream 值的投影原语。它总是在 `stream.extensions.<name>` 上暴露一个可迭代 stream。构造函数参数决定每次 `push()` 是否也会作为 `custom:<name>` 事件流入 run 的主事件 stream — 也就是说, 在迭代原始协议事件时, 该投影的值是否会显现。
 
 :::js
-| Need | Use |
+| 需求 | 用法 |
 | ---- | --- |
-| Side-channel projection only | `new StreamChannel<T>()` |
-| Also flow each push into the main event stream | `new StreamChannel<T>(name)` |
+| 仅侧信道投影 | `new StreamChannel<T>()` |
+| 同时让每次 push 流入主事件 stream | `new StreamChannel<T>(name)` |
 :::
 
 :::python
-| Need | Use |
+| 需求 | 用法 |
 | ---- | --- |
-| Side-channel projection only | `StreamChannel()` |
-| Also flow each push into the main event stream | `StreamChannel(name)` |
+| 仅侧信道投影 | `StreamChannel()` |
+| 同时让每次 push 流入主事件 stream | `StreamChannel(name)` |
 :::
 
-Named channel payloads must be serializable, because each pushed value also becomes a `custom:<name>` protocol event in the main stream. Keep promises, async iterables, class instances, and other in-process handles in unnamed channels.
+具名通道的 payload 必须可序列化, 因为每个被推送的值还会在主 stream 中变成一个 `custom:<name>` 协议事件。请将 promise、async 可迭代对象、类实例以及其他进程内句柄保留在匿名通道中。
 
-The stream handler owns channel lifecycle. Once `init()` returns a channel, the handler closes or fails it for you when the run ends. Transformers only push values.
+stream 处理器负责通道生命周期。一旦 `init()` 返回通道, 处理器会在 run 结束时为你关闭或使其失败。transformer 只负责 push 值。
 
-### Example: named channel
+### 示例: 具名通道
 
-Pass a string name to `StreamChannel` to expose a streaming projection through `stream.extensions` *and* forward each pushed value into the run's main event stream as a `custom:<name>` protocol event:
+向 `StreamChannel` 传入字符串名称, 即可通过 `stream.extensions` 暴露一个 streaming 投影, *并*将每个被推送的值作为 `custom:<name>` 协议事件转发到 run 的主事件 stream 中:
 
 :::python
 ```py
@@ -641,11 +641,11 @@ const toolActivityTransformer = () => {
 ```
 :::
 
-### Example: unnamed channel
+### 示例: 匿名通道
 
-Without a name, the channel is a side-channel projection only — accessible on `stream.extensions` but not visible to consumers iterating raw events. This is the right choice for projections that hold in-process handles (promises, async iterables, class instances) that can't be serialized onto the main event stream.
+若不传入名称, 该通道仅为侧信道投影 — 可在 `stream.extensions` 上访问, 但对迭代原始事件的消费者不可见。对于持有无法序列化到主事件 stream 上的进程内句柄(promise、async 可迭代对象、类实例)的投影, 这是正确的选择。
 
-The example below pairs an unnamed channel with `get_stream_writer`, which lets graph nodes emit `custom`-channel events that the transformer then drains into the projection:
+下面的示例将一个匿名通道与 `get_stream_writer` 搭配使用, 前者让 graph node 发出 `custom` 通道事件, 随后 transformer 会把这些事件汲取到投影中:
 
 :::python
 ```py
@@ -702,9 +702,9 @@ const customTransformer = () => {
 ```
 :::
 
-### Example: final-value projection
+### 示例: 最终值投影
 
-Use unnamed streams, promises, or other in-process objects when the projection should not flow into the main event stream:
+当投影不应流入主事件 stream 时, 使用匿名 stream、promise 或其他进程内对象:
 
 :::python
 ```py
@@ -759,9 +759,9 @@ const statsTransformer = () => {
 ```
 :::
 
-### Register at call time or compile time
+### 在调用时或编译时注册
 
-Pass transformers at call time for local experimentation:
+在本地试验时, 在调用时传入 transformer:
 
 :::python
 ```py
@@ -782,7 +782,7 @@ const stream = await graph.streamEvents(input, {
 ```
 :::
 
-Compile transformers into the graph when every run of that graph should produce the projection:
+当该 graph 的每次 run 都应产出该投影时, 将 transformer 编译进 graph:
 
 :::python
 ```py
@@ -800,10 +800,10 @@ const graph = builder.compile({
 ```
 :::
 
-### Built-in: `ToolCallTransformer`
+### 内置: `ToolCallTransformer`
 
 :::python
-LangGraph ships `ToolCallTransformer` as a built-in. Register it to expose `stream.tool_calls` on a plain `StateGraph`:
+LangGraph 内置提供 `ToolCallTransformer`。注册它即可在普通的 `StateGraph` 上暴露 `stream.tool_calls`:
 
 ```py
 from langgraph.prebuilt import ToolCallTransformer
@@ -815,13 +815,15 @@ for tool_call in stream.tool_calls:
 ```
 :::
 
-## Related
+## 相关
 
-LangGraph defines the streaming primitives. For using streaming with LangChain or Deep Agents, review the relevant product docs:
+LangGraph 定义了 streaming 原语。若要在 LangChain 或 Deep Agents 中使用 streaming, 请查阅相关产品文档:
 
-- [LangChain agent streaming](/oss/langchain/event-streaming) covers ReAct-style agent messages, tool calls, and middleware updates.
-- [Deep Agents streaming](/oss/deepagents/event-streaming) covers subagents, nested messages, and subagent tool calls.
-- [LangChain frontend patterns](/oss/langchain/frontend/overview) and [LangGraph frontend patterns](/oss/langgraph/frontend/overview) show UI use cases built on top of streamed state.
-- [LangSmith Streaming API](/langsmith/streaming) covers streaming against a graph deployed behind an Agent Server.
+- [LangChain agent streaming](/oss/langchain/event-streaming) 涵盖 ReAct 风格的 agent 消息、tool call 与 middleware 更新。
+- [Deep Agents streaming](/oss/deepagents/event-streaming) 涵盖 subagent、嵌套消息与 subagent tool call。
+- [LangChain frontend patterns](/oss/langchain/frontend/overview) 与 [LangGraph frontend patterns](/oss/langgraph/frontend/overview) 展示了构建在 stream 出来的 state 之上的 UI 用例。
+- [LangSmith Streaming API](/langsmith/streaming) 涵盖针对部署在 Agent Server 之后的 graph 进行 stream。
 
-The wire-level event and command formats are defined in the [Agent Protocol](https://github.com/langchain-ai/agent-protocol) repository and consumable as [`langchain-protocol`](https://pypi.org/project/langchain-protocol/) on PyPI and [`@langchain/protocol`](https://www.npmjs.com/package/@langchain/protocol) on npm.
+线缆级(wire-level)的事件与命令格式定义在 [Agent Protocol](https://github.com/langchain-ai/agent-protocol) 仓库中, 并可作为 PyPI 上的 [`langchain-protocol`](https://pypi.org/project/langchain-protocol/) 与 npm 上的 [`@langchain/protocol`](https://www.npmjs.com/package/@langchain/protocol) 使用。
+
+{/* 源文档版本: src/oss/langgraph/event-streaming.mdx @ 6ae8d498a (2026-06-04) | 翻译日期: 2026-10-01 */}
