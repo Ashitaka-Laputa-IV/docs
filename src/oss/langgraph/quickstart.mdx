@@ -1,73 +1,73 @@
 ---
-title: Quickstart
+title: 快速入门
 ---
 
 import ConnectDocsMcpPrompt from '/snippets/connect-docs-mcp-prompt.mdx';
 import InstallLangchainSkillsPrompt from '/snippets/install-langchain-skills-prompt.mdx';
 
-This quickstart demonstrates how to build a calculator agent using the LangGraph Graph API or the Functional API.
+本快速入门演示如何使用 LangGraph Graph API 或 Functional API 构建一个计算器 agent。
 
 <Prompt
-    description="Build the LangGraph calculator quickstart"
+    description="构建 LangGraph 计算器快速入门"
     icon="sparkles"
     actions={["copy"]}
 >
-Build a LangGraph calculator agent in this working directory by following the LangGraph quickstart.
+按照 LangGraph 快速入门, 在当前工作目录中构建一个 LangGraph 计算器 agent。
 
-## Step 1: Read the guide
+## 步骤 1: 阅读指南
 
-Detect whether this project uses Python or TypeScript/JavaScript. Fetch and follow the matching page; treat it as the source of truth for package names, model strings, and code:
+判断本项目使用的是 Python 还是 TypeScript/JavaScript。抓取并遵循匹配的那一页; 以它作为包名、model 字符串与代码的权威来源:
 
 - Python: https://docs.langchain.com/oss/python/langgraph/quickstart.md
 - TypeScript: https://docs.langchain.com/oss/javascript/langgraph/quickstart.md
 
-Ask the user whether to use the Graph API or the Functional API. If they have no preference, use the Graph API path.
+询问用户要使用 Graph API 还是 Functional API。如果用户没有偏好, 就走 Graph API 路径。
 
-## Step 2: Install dependencies
+## 步骤 2: 安装依赖
 
-Install the packages required by the chosen path with the package manager already used in this project.
+使用本项目已在使用的包管理器, 安装所选路径所需的包。
 
-## Step 3: Configure model credentials
+## 步骤 3: 配置 model 凭据
 
-This quickstart uses Anthropic by default. Check whether `ANTHROPIC_API_KEY` is set. If it is not, ask the user to create a key and set it in the shell or a `.env` file, then stop and wait for confirmation. Do not invent, hardcode, or commit API keys. If the user prefers another chat model provider from the integrations docs, adapt the example accordingly after confirming.
+本快速入门默认使用 Anthropic。检查是否已设置 `ANTHROPIC_API_KEY`。如果没有设置, 请用户创建一个 key 并在 shell 或 `.env` 文件中设置, 然后停下来等待确认。不要编造、硬编码或提交 API key。如果用户更倾向于 integrations 文档中的其他 chat model provider, 在确认后再相应调整示例。
 
-## Step 4: Implement the calculator agent
+## 步骤 4: 实现计算器 agent
 
-Implement the selected quickstart path end to end: tools for add, multiply, and divide; the agent graph or functional workflow; and a sample invocation that exercises tool calling. Print the final result so the user can verify the run.
+端到端实现所选快速入门路径: add、multiply、divide 三个 tools; agent graph 或 functional workflow; 以及一个会实际触发 tool calling 的调用示例。打印最终结果, 以便用户验证这次运行。
 
-## Rules
+## 规则
 
-- Stay scoped to this quickstart. Do not add deployment, evals, or unrelated frameworks unless the user asks.
-- Prefer the APIs and structure shown on the fetched guide over inventing a different agent pattern.
-- Ask rather than guess when a secret, API choice, or project convention is unclear.
+- 保持在本快速入门范围内。除非用户要求, 不要加入部署、evals 或无关 framework。
+- 优先使用所抓取指南中展示的 API 与结构, 不要自行发明不同的 agent 模式。
+- 当密钥、API 选择或项目约定不明确时, 应当询问而不是猜测。
 </Prompt>
 
 <Tip>
-    **Using an AI coding assistant?**
+    **正在使用 AI 编程助手?**
 
-    - Install the [LangChain Docs MCP servers](/use-these-docs) to give your agent access to up-to-date LangChain documentation and examples.
+    - 安装 [LangChain Docs MCP servers](/use-these-docs), 让你的 agent 能够访问最新的 LangChain 文档与示例。
 
       <ConnectDocsMcpPrompt />
-    - Install [LangChain Skills](https://github.com/langchain-ai/langchain-skills) to improve your agent's performance on LangChain ecosystem tasks.
+    - 安装 [LangChain Skills](https://github.com/langchain-ai/langchain-skills), 提升你的 agent 在 LangChain 生态任务上的表现。
 
       <InstallLangchainSkillsPrompt />
 </Tip>
 
-- [Use the Graph API](#use-the-graph-api) if you prefer to define your agent as a graph of nodes and edges.
-- [Use the Functional API](#use-the-functional-api) if you prefer to define your agent as a single function.
+- 如果你更倾向于把 agent 定义为由 nodes 与 edges 组成的 graph, 请[使用 Graph API](#use-the-graph-api)。
+- 如果你更倾向于把 agent 定义为单个函数, 请[使用 Functional API](#use-the-functional-api)。
 
-For conceptual information, see [Graph API overview](/oss/langgraph/graph-api) and [Functional API overview](/oss/langgraph/functional-api).
+概念性说明请参阅 [Graph API overview](/oss/langgraph/graph-api) 与 [Functional API overview](/oss/langgraph/functional-api)。
 
 <Info>
-For this example, you will need to set up a [Claude (Anthropic)](https://www.anthropic.com/) account and get an API key. Then, set the `ANTHROPIC_API_KEY` environment variable in your terminal. See [chat model integrations](/oss/integrations/chat) for all available providers. If you use [LangSmith Gateway](/langsmith/llm-gateway), you can [bring your own provider keys](/langsmith/llm-gateway-quickstart#send-a-request) or use [Gateway Credits](/langsmith/llm-gateway-credits) to access models without a provider key.
+本示例需要你注册 [Claude (Anthropic)](https://www.anthropic.com/) 账号并获取 API key。然后在终端中设置 `ANTHROPIC_API_KEY` 环境变量。所有可用 provider 请参阅 [chat model integrations](/oss/integrations/chat)。如果你使用 [LangSmith Gateway](/langsmith/llm-gateway), 可以[自带 provider key](/langsmith/llm-gateway-quickstart#send-a-request), 也可以使用 [Gateway Credits](/langsmith/llm-gateway-credits) 在没有 provider key 的情况下访问 models。
 </Info>
 
 <Tabs>
-<Tab title="Use the Graph API">
+<Tab title="使用 Graph API">
 
-## 1. Define tools and model
+## 1. 定义 tools 与 model
 
-In this example, we'll use the Claude Sonnet 4.5 model and define tools for addition, multiplication, and division.
+在本示例中, 我们将使用 Claude Sonnet 4.5 model, 并定义加法、乘法与除法的 tools。
 
 :::python
 ```python
@@ -172,16 +172,16 @@ const modelWithTools = model.bindTools(tools);
 ```
 :::
 
-## 2. Define state
+## 2. 定义 state
 
-The graph's state is used to store the messages and the number of LLM calls.
+graph 的 state 用于存储 messages 以及 LLM 的调用次数。
 
 :::python
 
 <Tip>
-    State in LangGraph persists throughout the agent's execution.
+    LangGraph 中的 state 在整个 agent 执行期间持续存在。
 
-    The `Annotated` type with `operator.add` ensures that new messages are appended to the existing list rather than replacing it.
+    配合 `operator.add` 使用的 `Annotated` 类型可确保新 messages 追加到现有列表中, 而不是替换整个列表。
 </Tip>
 
 :::
@@ -189,9 +189,9 @@ The graph's state is used to store the messages and the number of LLM calls.
 :::js
 
 <Tip>
-    State in LangGraph persists throughout the agent's execution.
+    LangGraph 中的 state 在整个 agent 执行期间持续存在。
 
-    The `MessagesValue` provides a built-in reducer for appending messages. The `llmCalls` field uses a `ReducedValue` with `(x, y) => x + y` to accumulate the count.
+    `MessagesValue` 内置了用于追加 messages 的 reducer。`llmCalls` 字段使用带 `(x, y) => x + y` 的 `ReducedValue` 来累加计数。
 </Tip>
 
 :::
@@ -234,9 +234,9 @@ const MessagesState = new StateSchema({
 ```
 :::
 
-## 3. Define model node
+## 3. 定义 model node
 
-The model node is used to call the LLM and decide whether to call a tool or not.
+model node 用于调用 LLM, 并决定是否调用 tool。
 
 :::python
 
@@ -283,9 +283,9 @@ const llmCall: GraphNode<typeof MessagesState> = async (state) => {
 ```
 :::
 
-## 4. Define tool node
+## 4. 定义 tool node
 
-The tool node is used to call the tools and return the results.
+tool node 用于调用 tools 并返回结果。
 
 :::python
 
@@ -329,9 +329,9 @@ const toolNode: GraphNode<typeof MessagesState> = async (state) => {
 ```
 :::
 
-## 5. Define end logic
+## 5. 定义结束逻辑
 
-The conditional edge function is used to route to the tool node or end based upon whether the LLM made a tool call.
+conditional edge 函数用于根据 LLM 是否发起了 tool call, 决定路由到 tool node 还是结束。
 
 :::python
 
@@ -377,9 +377,9 @@ const shouldContinue: ConditionalEdgeRouter<{ InputSchema: typeof MessagesState;
 ```
 :::
 
-## 6. Build and compile the agent
+## 6. 构建并编译 agent
 
-The agent is built using the @[`StateGraph`] class and compiled using the @[`compile`][StateGraph.compile] method.
+该 agent 使用 @[`StateGraph`] 类构建, 并使用 @[`compile`][StateGraph.compile] 方法编译。
 
 :::python
 
@@ -440,14 +440,14 @@ for (const message of result.messages) {
 :::
 
 <Tip>
-Trace and debug your agent with [LangSmith](https://smith.langchain.com). Follow the [tracing quickstart](/langsmith/trace-with-langgraph) to get set up. When ready for production, see [Deploy](/langsmith/deployment) for hosting options.
+使用 [LangSmith](https://smith.langchain.com) 追踪并调试你的 agent。按照 [追踪快速入门](/langsmith/trace-with-langgraph) 完成设置。准备好上生产时, 可参阅 [部署](/langsmith/deployment) 了解托管方案。
 
-We recommend you also set up [LangSmith Engine](/langsmith/engine) which monitors your traces, detects issues, and proposes fixes.
+我们还建议你同时配置 [LangSmith Engine](/langsmith/engine), 它会监控你的 trace、检测问题并提出修复方案。
 </Tip>
 
-Congratulations! You've built your first agent using the LangGraph Graph API.
+恭喜! 你已经使用 LangGraph Graph API 构建了第一个 agent。
 
-<Accordion title="Full code example">
+<Accordion title="完整代码示例">
 :::python
 
 ```python
@@ -762,11 +762,11 @@ for (const message of result.messages) {
 </Accordion>
 </Tab>
 
-<Tab title="Use the Functional API">
+<Tab title="使用 Functional API">
 
-## 1. Define tools and model
+## 1. 定义 tools 与 model
 
-In this example, we'll use the Claude Sonnet 4.5 model and define tools for addition, multiplication, and division.
+在本示例中, 我们将使用 Claude Sonnet 4.5 model, 并定义加法、乘法与除法的 tools。
 
 :::python
 
@@ -883,14 +883,14 @@ const modelWithTools = model.bindTools(tools);
 ```
 :::
 
-## 2. Define model node
+## 2. 定义 model node
 
-The model node is used to call the LLM and decide whether to call a tool or not.
+model node 用于调用 LLM, 并决定是否调用 tool。
 
 :::python
 
 <Tip>
-    The @[`@task`] decorator marks a function as a task that can be executed as part of the agent. Tasks can be called synchronously or asynchronously within your entrypoint function.
+    @[`@task`] 装饰器把函数标记为一个可以作为 agent 一部分执行的 task。Tasks 可以在 entrypoint 函数内以同步或异步方式调用。
 </Tip>
 
 ```python
@@ -924,9 +924,9 @@ const callLlm = task({ name: "callLlm" }, async (messages: BaseMessage[]) => {
 ```
 :::
 
-## 3. Define tool node
+## 3. 定义 tool node
 
-The tool node is used to call the tools and return the results.
+tool node 用于调用 tools 并返回结果。
 
 :::python
 ```python
@@ -950,14 +950,14 @@ const callTool = task({ name: "callTool" }, async (toolCall: ToolCall) => {
 ```
 :::
 
-## 4. Define agent
+## 4. 定义 agent
 
 :::python
 
-The agent is built using the @[`@entrypoint`] function.
+该 agent 使用 @[`@entrypoint`] 函数构建。
 
 <Note>
-    In the Functional API, instead of defining nodes and edges explicitly, you write standard control flow logic (loops, conditionals) within a single function.
+    在 Functional API 中, 你不必显式定义 nodes 与 edges, 而是在单个函数内编写标准的控制流逻辑(循环、条件分支)。
 </Note>
 
 ```python
@@ -1025,14 +1025,14 @@ for (const message of result) {
 :::
 
 <Tip>
-Trace and debug your agent with [LangSmith](https://smith.langchain.com). Follow the [tracing quickstart](/langsmith/trace-with-langgraph) to get set up. When ready for production, see [Deploy](/langsmith/deployment) for hosting options.
+使用 [LangSmith](https://smith.langchain.com) 追踪并调试你的 agent。按照 [追踪快速入门](/langsmith/trace-with-langgraph) 完成设置。准备好上生产时, 可参阅 [部署](/langsmith/deployment) 了解托管方案。
 
-We recommend you also set up [LangSmith Engine](/langsmith/engine) which monitors your traces, detects issues, and proposes fixes.
+我们还建议你同时配置 [LangSmith Engine](/langsmith/engine), 它会监控你的 trace、检测问题并提出修复方案。
 </Tip>
 
-Congratulations! You've built your first agent using the LangGraph Functional API.
+恭喜! 你已经使用 LangGraph Functional API 构建了第一个 agent。
 
-<Accordion title="Full code example" icon="code">
+<Accordion title="完整代码示例" icon="code">
 :::python
 
 ```python
@@ -1264,3 +1264,4 @@ for (const message of result) {
 </Tab>
 </Tabs>
 
+{/* 源文档版本: src/oss/langgraph/quickstart.mdx | 翻译日期: 2026-10-01 */}
