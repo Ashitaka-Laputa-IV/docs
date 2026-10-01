@@ -1,82 +1,82 @@
 ---
-title: Deployment
-description: Deploy LangGraph agents to production with LangSmith Cloud or JavaScript frameworks and hosting platforms.
-sidebarTitle: Deployment
+title: 部署
+description: 使用 LangSmith Cloud 或 JavaScript framework 与托管平台, 将 LangGraph agent 部署到生产环境。
+sidebarTitle: 部署
 ---
 
 import DeployFrameworksPlatformsReference from '/snippets/langsmith/deploy-frameworks-platforms-reference.mdx';
 
-When you are ready to deploy your LangGraph agent to production, choose a hosting model that fits your stack. **[LangSmith Cloud](/langsmith/deploy-to-cloud)** provides fully managed infrastructure for stateful, long-running agents with persistent state and background execution.
+当你准备好把 LangGraph agent 部署到生产环境时, 请选择一种适合你的技术栈的托管模式。**[LangSmith Cloud](/langsmith/deploy-to-cloud)** 为有状态、长时运行的 agent 提供全托管基础设施, 具备持久 state 与后台执行能力。
 
 :::js
-You can also deploy on **JavaScript frameworks and platforms** such as Next.js, SvelteKit, Nuxt, Cloudflare Workers, and Deno Deploy using the same [Agent Streaming Protocol](https://github.com/langchain-ai/agent-protocol/tree/main/streaming).
+你也可以使用同样的 [Agent Streaming Protocol](https://github.com/langchain-ai/agent-protocol/tree/main/streaming), 部署到 **JavaScript framework 与平台**上, 例如 Next.js、SvelteKit、Nuxt、Cloudflare Workers 与 Deno Deploy。
 
 <DeployFrameworksPlatformsReference />
 :::
 
 <Tip>
-LangSmith offers multiple deployment options beyond Cloud, including [hybrid](/langsmith/hybrid), [standalone servers](/langsmith/deploy-standalone-server), and [self-hosted with control plane](/langsmith/deploy-with-control-plane). For more information, see the [LangSmith Deployment overview](/langsmith/deployment).
+除了 Cloud 之外, LangSmith 还提供多种部署选项, 包括 [hybrid](/langsmith/hybrid)、[standalone servers](/langsmith/deploy-standalone-server) 以及 [self-hosted with control plane](/langsmith/deploy-with-control-plane)。更多信息见 [LangSmith Deployment 概览](/langsmith/deployment)。
 </Tip>
 
 ## LangSmith Cloud
 
-This section walks through deploying your agent to LangSmith Cloud from a GitHub repository. LangSmith handles infrastructure, scaling, and operational concerns.
+本节将带你从 GitHub 仓库把 agent 部署到 LangSmith Cloud。LangSmith 负责基础设施、扩展与运维相关事项。
 
-### Prerequisites
+### 前置条件
 
-Before you begin, ensure you have the following:
+在开始之前, 请确保你具备以下条件:
 
-- A [GitHub account](https://github.com/)
-- A [LangSmith account](https://smith.langchain.com) (free to sign up)
+- 一个 [GitHub 账号](https://github.com/)
+- 一个 [LangSmith 账号](https://smith.langchain.com) (免费注册)
 
-### Deploy your agent
+### 部署你的 agent
 
-#### 1. Create a repository on GitHub
+#### 1. 在 GitHub 上创建仓库
 
-Your application's code must reside in a GitHub repository to be deployed on LangSmith. Both public and private repositories are supported. For this quickstart, first make sure your app is LangGraph-compatible by following the [local server setup guide](/oss/langgraph/studio#set-up-local-agent-server). Then, push your code to the repository.
+你的应用代码必须位于 GitHub 仓库中, 才能部署到 LangSmith。公有仓库与私有仓库都受支持。在本快速入门中, 请先按照 [本地服务器设置指南](/oss/langgraph/studio#set-up-local-agent-server) 确认你的应用与 LangGraph 兼容。然后, 把你的代码推送到该仓库。
 
 
-#### 2. Deploy to LangSmith
+#### 2. 部署到 LangSmith
 
 <Steps>
-<Step title="Navigate to LangSmith Deployment">
-    Log in to [LangSmith](https://smith.langchain.com). In the left sidebar, select **Deployments**.
+<Step title="导航到 LangSmith Deployment">
+    登录 [LangSmith](https://smith.langchain.com)。在左侧边栏中, 选择 **Deployments**。
 </Step>
-<Step title="Create new deployment">
-    Click the **+ New Deployment** button. A pane will open where you can fill in the required fields.
+<Step title="创建新部署">
+    点击 **+ New Deployment** 按钮。会打开一个面板, 你可以在其中填写必填字段。
 </Step>
-<Step title="Link repository">
-    If you are a first time user or adding a private repository that has not been previously connected, click the **Add new account** button and follow the instructions to connect your GitHub account.
+<Step title="关联仓库">
+    如果你是首次使用, 或者要添加一个此前从未连接过的私有仓库, 请点击 **Add new account** 按钮, 并按照说明连接你的 GitHub 账号。
 </Step>
-<Step title="Deploy repository">
-    Select your application's repository. Click **Submit** to deploy. This may take about 15 minutes to complete. You can check the status in the **Deployment details** view.
+<Step title="部署仓库">
+    选择你的应用仓库。点击 **Submit** 进行部署。这可能需要约 15 分钟才能完成。你可以在 **Deployment details** 视图中查看状态。
 </Step>
 </Steps>
 
-#### 3. Test your application in Studio
+#### 3. 在 Studio 中测试你的应用
 
-Once your application is deployed:
+应用部署完成后:
 
-1. Select the deployment you just created to view more details.
-2. Click the **Studio** button in the top right corner. Studio will open to display your graph.
+1. 选择你刚刚创建的部署, 以查看更多详情。
+2. 点击右上角的 **Studio** 按钮。Studio 会打开并显示你的 graph。
 
-#### 4. Get the API URL for your deployment
+#### 4. 获取部署的 API URL
 
-1. In the **Deployment details** view in LangGraph, click the **API URL** to copy it to your clipboard.
-2. Click the `URL` to copy it to the clipboard.
+1. 在 LangGraph 的 **Deployment details** 视图中, 点击 **API URL** 将其复制到剪贴板。
+2. 点击 `URL` 将其复制到剪贴板。
 
-#### 5. Test the API
+#### 5. 测试 API
 
-You can now test the API:
+现在你可以测试 API:
 
 <Tabs>
 :::python
 <Tab title="Python">
-1. Install LangGraph SDK:
+1. 安装 LangGraph SDK:
 ```shell
 pip install langgraph-sdk
 ```
-2. Send a message to the agent:
+2. 向 agent 发送一条消息:
 ```python
 from langgraph_sdk import get_sync_client # or get_client for async
 
@@ -101,11 +101,11 @@ for chunk in client.runs.stream(
 :::
 :::js
 <Tab title="TypeScript">
-1. Install LangGraph SDK:
+1. 安装 LangGraph SDK:
 ```shell
 npm install @langchain/langgraph-sdk
 ```
-2. Send a message to the agent:
+2. 向 agent 发送一条消息:
 ```ts
 import { Client } from "@langchain/langgraph-sdk";
 
@@ -153,3 +153,5 @@ curl -s --request POST \
 ```
 </Tab>
 </Tabs>
+
+{/* 源文档版本: src/oss/langgraph/deploy.mdx @ 361851372 (2026-06-24) | 翻译日期: 2026-10-01 */}
