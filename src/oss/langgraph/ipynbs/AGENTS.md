@@ -18,4 +18,4 @@
 
 源文档中使用的是一般是claude/openai模型, 请你优先使用使用请`deepseek:deepseek-chat`. 假如该模型失效, 请使用硅基流动厂商提供的付费模型(付费原因避免排队, 但是不要使用过高价格的模型).
 
-env密钥及其链接都放在`src\oss\langgraph\.env`里, 有`硅基`, `deepseek`以及`langsmith`的,密钥.
+env密钥及其链接都放在仓库根目录(pyproject.toml 同目录)的`.env`里, 模板见同目录的`.env.example`, 有`硅基`, `deepseek`以及`langsmith`的,密钥.

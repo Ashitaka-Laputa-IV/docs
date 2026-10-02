@@ -30,8 +30,12 @@ pip install -U langgraph langchain langchain-deepseek langchain-openai python-do
 
 ## 环境变量速查
 
-每个 notebook 的第一个 cell 会自动 `load_dotenv()`，向上找到仓库里的 `src/oss/langgraph/.env`，
-所以只要该文件里有对应的键，就直接可跑，不需要手动 `export`。
+带代码 cell 的 notebook 第一个 cell 会自动 `load_dotenv()`，向上找到**仓库根目录**（`pyproject.toml` 同目录）的 `.env`，
+所以只要该文件里有对应的键，就直接可跑，不需要手动 `export`。仓库里提供了模板：
+
+```bash
+cp .env.example .env   # 再填入真实值
+```
 
 | 变量 | 用途 | 涉及的章节 |
 |------|------|-----------|
