@@ -3,7 +3,7 @@
 对应 add-memory.mdx「总结消息」。
 
 依赖: pip install langgraph langchain langchain-deepseek python-dotenv
-API key: 自动读取仓库的 src/oss/langgraph/.env (DEEPSEEK_API_KEY / SILICONFLOW_API_KEY / LANGSMITH_API_KEY)
+API key: 自动读取仓库根目录的 .env (DEEPSEEK_API_KEY / SILICONFLOW_API_KEY / LANGSMITH_API_KEY)
 运行: python summarize_messages.py
 
 要点:
@@ -15,7 +15,7 @@ API key: 自动读取仓库的 src/oss/langgraph/.env (DEEPSEEK_API_KEY / SILICO
 
 from dotenv import load_dotenv
 
-load_dotenv()  # 自动向上查找 src/oss/langgraph/.env
+load_dotenv()  # 自动向上查找仓库根目录的 .env
 
 from langchain.chat_models import init_chat_model
 from langchain.messages import HumanMessage, RemoveMessage, SystemMessage

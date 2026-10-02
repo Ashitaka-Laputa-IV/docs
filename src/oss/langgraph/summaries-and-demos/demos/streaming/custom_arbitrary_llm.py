@@ -4,7 +4,7 @@
 通过 get_stream_writer() 送进 LangGraph 的 stream。
 
 依赖: pip install langgraph openai python-dotenv
-API key: 自动读取仓库的 src/oss/langgraph/.env (DEEPSEEK_API_KEY / SILICONFLOW_API_KEY / LANGSMITH_API_KEY)
+API key: 自动读取仓库根目录的 .env (DEEPSEEK_API_KEY / SILICONFLOW_API_KEY / LANGSMITH_API_KEY)
 运行: python custom_arbitrary_llm.py
 """
 
@@ -18,7 +18,7 @@ from langgraph.config import get_stream_writer
 from langgraph.graph import START, StateGraph
 from openai import AsyncOpenAI
 
-load_dotenv()  # 自动向上查找 src/oss/langgraph/.env
+load_dotenv()  # 自动向上查找仓库根目录的 .env
 
 openai_client = AsyncOpenAI(
     api_key=os.environ["DEEPSEEK_API_KEY"],

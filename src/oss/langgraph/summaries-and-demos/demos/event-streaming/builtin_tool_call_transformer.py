@@ -5,13 +5,13 @@
         print(tool_call.tool_name, tool_call.input)
 
 依赖: pip install langgraph langchain langchain-deepseek python-dotenv
-API key: 自动读取仓库的 src/oss/langgraph/.env (DEEPSEEK_API_KEY / SILICONFLOW_API_KEY / LANGSMITH_API_KEY)
+API key: 自动读取仓库根目录的 .env (DEEPSEEK_API_KEY / SILICONFLOW_API_KEY / LANGSMITH_API_KEY)
 运行: python builtin_tool_call_transformer.py
 """
 
 from dotenv import load_dotenv
 
-load_dotenv()  # 自动向上查找 src/oss/langgraph/.env
+load_dotenv()  # 自动向上查找仓库根目录的 .env
 
 from typing import TypedDict
 

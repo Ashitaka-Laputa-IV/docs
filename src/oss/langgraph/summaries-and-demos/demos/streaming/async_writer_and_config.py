@@ -5,7 +5,7 @@ Python < 3.11 的 asyncio task 不支持 context 参数, 因此:
 2. 不能在 async node/tool 中用 get_stream_writer(), 必须把 writer 作为参数传入。
 
 依赖: pip install langgraph langchain langchain-deepseek python-dotenv
-API key: 自动读取仓库的 src/oss/langgraph/.env (DEEPSEEK_API_KEY / SILICONFLOW_API_KEY / LANGSMITH_API_KEY)
+API key: 自动读取仓库根目录的 .env (DEEPSEEK_API_KEY / SILICONFLOW_API_KEY / LANGSMITH_API_KEY)
 运行: python async_writer_and_config.py
 """
 
@@ -17,7 +17,7 @@ from langchain.chat_models import init_chat_model
 from langgraph.graph import START, StateGraph
 from langgraph.types import StreamWriter
 
-load_dotenv()  # 自动向上查找 src/oss/langgraph/.env
+load_dotenv()  # 自动向上查找仓库根目录的 .env
 
 model = init_chat_model("deepseek:deepseek-chat")
 

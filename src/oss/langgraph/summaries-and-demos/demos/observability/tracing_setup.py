@@ -3,7 +3,7 @@
 来源: src/oss/langgraph/observability.mdx
 
 依赖: pip install langgraph langchain langchain-deepseek langsmith python-dotenv
-API key: 自动读取仓库的 src/oss/langgraph/.env (DEEPSEEK_API_KEY / SILICONFLOW_API_KEY / LANGSMITH_API_KEY)
+API key: 自动读取仓库根目录的 .env (DEEPSEEK_API_KEY / SILICONFLOW_API_KEY / LANGSMITH_API_KEY)
 运行: python tracing_setup.py
 """
 
@@ -11,7 +11,7 @@ import os
 
 from dotenv import load_dotenv
 
-load_dotenv()  # 自动向上查找 src/oss/langgraph/.env
+load_dotenv()  # 自动向上查找仓库根目录的 .env
 os.environ.setdefault("LANGSMITH_TRACING", "true")  # .env 未设置时开启追踪
 
 from langchain.agents import create_agent

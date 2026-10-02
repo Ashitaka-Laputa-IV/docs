@@ -3,7 +3,7 @@
 要点: 即使 model 用 .invoke() (而非 .stream()), message 事件仍会被发出。
 
 依赖: pip install langgraph langchain langchain-deepseek python-dotenv
-API key: 自动读取仓库的 src/oss/langgraph/.env (DEEPSEEK_API_KEY / SILICONFLOW_API_KEY / LANGSMITH_API_KEY)
+API key: 自动读取仓库根目录的 .env (DEEPSEEK_API_KEY / SILICONFLOW_API_KEY / LANGSMITH_API_KEY)
 运行: python llm_tokens_messages.py
 """
 
@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 from langchain.chat_models import init_chat_model
 from langgraph.graph import START, StateGraph
 
-load_dotenv()  # 自动向上查找 src/oss/langgraph/.env
+load_dotenv()  # 自动向上查找仓库根目录的 .env
 
 model = init_chat_model("deepseek:deepseek-chat")
 

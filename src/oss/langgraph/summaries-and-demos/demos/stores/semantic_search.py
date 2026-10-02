@@ -2,7 +2,7 @@
 
 对应 stores.mdx「语义搜索」。
 依赖: pip install langgraph langchain langchain-openai python-dotenv
-API key: 自动读取仓库的 src/oss/langgraph/.env (DEEPSEEK_API_KEY / SILICONFLOW_API_KEY / LANGSMITH_API_KEY)
+API key: 自动读取仓库根目录的 .env (DEEPSEEK_API_KEY / SILICONFLOW_API_KEY / LANGSMITH_API_KEY)
 运行: python semantic_search.py
 """
 
@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 from langchain_openai import OpenAIEmbeddings
 from langgraph.store.memory import InMemoryStore
 
-load_dotenv()  # 自动向上查找 src/oss/langgraph/.env
+load_dotenv()  # 自动向上查找仓库根目录的 .env
 
 embeddings = OpenAIEmbeddings(
     model="BAAI/bge-m3",

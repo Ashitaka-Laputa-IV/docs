@@ -3,7 +3,7 @@
 对应 add-memory.mdx「添加 short-term memory」。
 
 依赖: pip install langgraph langchain langchain-deepseek python-dotenv
-API key: 自动读取仓库的 src/oss/langgraph/.env (DEEPSEEK_API_KEY / SILICONFLOW_API_KEY / LANGSMITH_API_KEY)
+API key: 自动读取仓库根目录的 .env (DEEPSEEK_API_KEY / SILICONFLOW_API_KEY / LANGSMITH_API_KEY)
 运行: python short_term_memory.py
 
 生产环境请把 InMemorySaver 换成数据库 checkpointer(见文件末尾注释)。
@@ -11,7 +11,7 @@ API key: 自动读取仓库的 src/oss/langgraph/.env (DEEPSEEK_API_KEY / SILICO
 
 from dotenv import load_dotenv
 
-load_dotenv()  # 自动向上查找 src/oss/langgraph/.env
+load_dotenv()  # 自动向上查找仓库根目录的 .env
 
 from langchain.chat_models import init_chat_model
 from langgraph.checkpoint.memory import InMemorySaver

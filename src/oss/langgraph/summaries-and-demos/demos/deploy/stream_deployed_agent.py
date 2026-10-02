@@ -3,7 +3,7 @@
 来源: src/oss/langgraph/deploy.mdx
 
 依赖: pip install langgraph-sdk python-dotenv
-API key: LANGSMITH_API_KEY 自动读取仓库的 src/oss/langgraph/.env
+API key: LANGSMITH_API_KEY 自动读取仓库根目录的 .env
 运行: 需自行提供已部署实例地址 (不在 .env 中)
     LANGSMITH_DEPLOYMENT_URL=... python stream_deployed_agent.py
 
@@ -16,7 +16,7 @@ import os
 
 from dotenv import load_dotenv
 
-load_dotenv()  # 自动向上查找 src/oss/langgraph/.env (提供 LANGSMITH_API_KEY; LANGSMITH_DEPLOYMENT_URL 需自行提供)
+load_dotenv()  # 自动向上查找仓库根目录的 .env (提供 LANGSMITH_API_KEY; LANGSMITH_DEPLOYMENT_URL 需自行提供)
 
 from langgraph_sdk import get_sync_client  # 异步场景用 get_client
 

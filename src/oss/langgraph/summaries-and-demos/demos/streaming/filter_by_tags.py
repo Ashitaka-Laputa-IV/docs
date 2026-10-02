@@ -3,7 +3,7 @@
 给不同 LLM 调用打不同 tags, 再按 metadata["tags"] 过滤, 只消费指定调用的 token。
 
 依赖: pip install langgraph langchain langchain-deepseek python-dotenv
-API key: 自动读取仓库的 src/oss/langgraph/.env (DEEPSEEK_API_KEY / SILICONFLOW_API_KEY / LANGSMITH_API_KEY)
+API key: 自动读取仓库根目录的 .env (DEEPSEEK_API_KEY / SILICONFLOW_API_KEY / LANGSMITH_API_KEY)
 运行: python filter_by_tags.py
 """
 
@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 from langchain.chat_models import init_chat_model
 from langgraph.graph import START, StateGraph
 
-load_dotenv()  # 自动向上查找 src/oss/langgraph/.env
+load_dotenv()  # 自动向上查找仓库根目录的 .env
 
 # joke_model 打上 "joke" tag; poem_model 打上 "poem" tag
 joke_model = init_chat_model("deepseek:deepseek-chat", tags=["joke"])

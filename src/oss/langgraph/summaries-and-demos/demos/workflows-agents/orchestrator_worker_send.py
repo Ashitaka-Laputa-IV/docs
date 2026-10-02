@@ -4,13 +4,13 @@ Send("llm_call", {"section": s}) 会动态启动一个 worker node, 每个 worke
 自己的 state; 所有 worker 的输出通过带 reducer 的共享 key 汇总。
 
 依赖: pip install langgraph langchain langchain-deepseek python-dotenv
-API key: 自动读取仓库的 src/oss/langgraph/.env (DEEPSEEK_API_KEY / SILICONFLOW_API_KEY / LANGSMITH_API_KEY)
+API key: 自动读取仓库根目录的 .env (DEEPSEEK_API_KEY / SILICONFLOW_API_KEY / LANGSMITH_API_KEY)
 运行: python orchestrator_worker_send.py
 """
 
 from dotenv import load_dotenv
 
-load_dotenv()  # 自动向上查找 src/oss/langgraph/.env
+load_dotenv()  # 自动向上查找仓库根目录的 .env
 
 import operator
 from typing import Annotated, TypedDict

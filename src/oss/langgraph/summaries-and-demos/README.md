@@ -38,7 +38,12 @@ pip install langchain langchain-deepseek langchain-openai langsmith pytest pytho
 
 ### 环境变量速查
 
-所有 demo 启动时都会 `load_dotenv()` 自动向上读取仓库的 `src/oss/langgraph/.env`，**不需要手动 export**。
+所有 demo 启动时都会 `load_dotenv()` 自动向上读取**仓库根目录**的 `.env`，**不需要手动 export**。
+还没有 `.env` 的话先复制模板并填值：
+
+```bash
+cp .env.example .env
+```
 
 | 变量 | 用途 | 涉及的章节 |
 |------|------|-----------|
@@ -118,7 +123,7 @@ pip install langchain langchain-deepseek langchain-openai langsmith pytest pytho
 ## 运行提示
 
 - 需要 LLM 的 demo 会在文件头部注释中标注依赖与所需 key。
-- 所有 demo 都会 `load_dotenv()` 自动读取仓库的 `src/oss/langgraph/.env`，无需手动 export；
+- 所有 demo 都会 `load_dotenv()` 自动读取仓库根目录的 `.env`，无需手动 export；
   chat model 统一为 DeepSeek，embedding 统一为硅基流动 `BAAI/bge-m3`。
 - `demos/test/` 下为 pytest 用例，运行：`pytest demos/test/`。
 - `demos/application-structure/` 与 `demos/studio/` 含 `langgraph.json`，可用 `langgraph dev` 启动（在对应目录下执行）。

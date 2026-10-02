@@ -5,7 +5,7 @@
 配套文件: 同目录下的 langgraph.json 会把本文件的 `agent` 暴露给 Agent Server。
 
 依赖: pip install langchain langchain-deepseek langsmith python-dotenv
-API key: 自动读取仓库的 src/oss/langgraph/.env (DEEPSEEK_API_KEY / SILICONFLOW_API_KEY / LANGSMITH_API_KEY)
+API key: 自动读取仓库根目录的 .env (DEEPSEEK_API_KEY / SILICONFLOW_API_KEY / LANGSMITH_API_KEY)
 运行 (在含 langgraph.json 的项目根目录):
     langgraph dev
     # 然后打开输出中的 Studio URL: https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024
@@ -15,7 +15,7 @@ import os
 
 from dotenv import load_dotenv
 
-load_dotenv()  # 自动向上查找 src/oss/langgraph/.env
+load_dotenv()  # 自动向上查找仓库根目录的 .env
 os.environ.setdefault("LANGSMITH_TRACING", "true")  # .env 未设置时开启追踪
 
 from langchain.agents import create_agent
